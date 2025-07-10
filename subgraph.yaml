@@ -1,6 +1,6 @@
 specVersion: 0.0.4
 description: StoryHunt - first IPFi Story Native AMM DEX to trade Tokens, NFTs and IPs. Anything and Everything.
-repository: https://github.com/0xstoryhunt/v3-subgraph.git
+repository: https://github.com/ipdotworld/storyhunt-subgraph-new.git
 schema:
   file: ./schema.graphql
 features:
@@ -13,7 +13,7 @@ dataSources:
     source:
       abi: Factory
       address: '0xB0d76e6C7aA7a78A00Af1A1083B4732a488700b4'
-      startBlock: 600000
+      startBlock: 6385978
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -37,13 +37,15 @@ dataSources:
         - event: PoolCreated(indexed address,indexed address,indexed uint24,int24,address)
           handler: handlePoolCreated
 
+
+
   - kind: ethereum/contract
     name: NonfungiblePositionManager
     network: story-aeneid
     source:
       address: '0xa09B218862abfAFB67A5E356b6f507F0e0Ce061E' # Add the contract address
       abi: NonfungiblePositionManager
-      startBlock: 600000 # Add the start block
+      startBlock: 6385978 # Add the start block
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -73,12 +75,33 @@ dataSources:
           handler: handleTransfer
 
   - kind: ethereum/contract
+    name: IPWorld
+    network: story-aeneid
+    source:
+      address: '0x531d6a7b7562E6b591e89136A0dE976284186193'
+      abi: IPWorld
+      startBlock: 6385978
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/ipworld.ts
+      entities:
+        - TokenDeployment
+      abis:
+        - name: IPWorld
+          file: ./abis/IPWorld.json
+      eventHandlers:
+        - event: TokenDeployed(indexed address,indexed address,indexed address,int24[],uint256[])
+          handler: handleTokenDeployed
+
+  - kind: ethereum/contract
     name: AlphaHunterV3
     network: story-aeneid
     source:
       address: '0x774a44C1CBC75FCBD4Dc81F7b78E7C2796D25834'
       abi: AlphaHunterV3
-      startBlock: 600000 # Replace with the correct start block
+      startBlock: 6385978 # Replace with the correct start block
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -142,4 +165,3 @@ templates:
           handler: handleBurn
         - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
           handler: handleCollect
-
