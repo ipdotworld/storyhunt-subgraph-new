@@ -78,7 +78,7 @@ dataSources:
     name: IPWorld
     network: story-aeneid
     source:
-      address: '0x9F04DC00a670829D93341F233678C4822628261a'
+      address: '0x5389aC74338cAafC388a3b600D5CA416D7b7077B'
       abi: IPWorld
       startBlock: 6385978
     mapping:
