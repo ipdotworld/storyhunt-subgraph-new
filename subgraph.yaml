@@ -13,7 +13,7 @@ dataSources:
     source:
       abi: Factory
       address: '0xB0d76e6C7aA7a78A00Af1A1083B4732a488700b4'
-      startBlock: 6385978
+      startBlock: 7005401
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -37,15 +37,13 @@ dataSources:
         - event: PoolCreated(indexed address,indexed address,indexed uint24,int24,address)
           handler: handlePoolCreated
 
-
-
   - kind: ethereum/contract
     name: NonfungiblePositionManager
     network: story-aeneid
     source:
-      address: '0xa09B218862abfAFB67A5E356b6f507F0e0Ce061E' # Add the contract address
+      address: '0xa09B218862abfAFB67A5E356b6f507F0e0Ce061E'
       abi: NonfungiblePositionManager
-      startBlock: 6385978 # Add the start block
+      startBlock: 7005401
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -54,7 +52,7 @@ dataSources:
       entities:
         - Pool
         - Token
-        - Position # Include the Position entity
+        - Position
       abis:
         - name: NonfungiblePositionManager
           file: ./abis/NonfungiblePositionManager.json
@@ -80,7 +78,7 @@ dataSources:
     source:
       address: '0x77475A8ca1AfE6a6dc9E82B32210709054937099'
       abi: IPWorld
-      startBlock: 7006310
+      startBlock: 7005401
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -88,12 +86,36 @@ dataSources:
       file: ./src/mappings/ipworld.ts
       entities:
         - TokenDeployment
+        - HarvestEvent
       abis:
         - name: IPWorld
           file: ./abis/IPWorld.json
       eventHandlers:
         - event: TokenDeployed(indexed address,indexed address,indexed address,int24[],uint256[])
           handler: handleTokenDeployed
+        - event: Harvest(indexed address,uint256,uint256,uint256,uint256,uint256)
+          handler: handleHarvest
+
+  - kind: ethereum/contract
+    name: IPOwnerVault
+    network: story-aeneid
+    source:
+      address: '0x18C59E44B72A4B76FA3eE144F5E4f4fC177c1086'
+      abi: IPOwnerVault
+      startBlock: 7005401
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/ipowner-vault.ts
+      entities:
+        - ClaimEvent
+      abis:
+        - name: IPOwnerVault
+          file: ./abis/IPOwnerVault.json
+      eventHandlers:
+        - event: VestedTokensAndEthClaimed(indexed address,indexed address,uint256,uint256)
+          handler: handleVestedTokensAndEthClaimed
 
   - kind: ethereum/contract
     name: AlphaHunterV3
@@ -101,7 +123,7 @@ dataSources:
     source:
       address: '0x774a44C1CBC75FCBD4Dc81F7b78E7C2796D25834'
       abi: AlphaHunterV3
-      startBlock: 6385978 # Replace with the correct start block
+      startBlock: 7005401
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
