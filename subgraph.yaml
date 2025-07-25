@@ -13,7 +13,7 @@ dataSources:
     source:
       abi: Factory
       address: '0xB0d76e6C7aA7a78A00Af1A1083B4732a488700b4'
-      startBlock: 7005401
+      startBlock: 6385978
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -43,7 +43,7 @@ dataSources:
     source:
       address: '0xa09B218862abfAFB67A5E356b6f507F0e0Ce061E'
       abi: NonfungiblePositionManager
-      startBlock: 7005401
+      startBlock: 6385978
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -123,7 +123,7 @@ dataSources:
     source:
       address: '0x774a44C1CBC75FCBD4Dc81F7b78E7C2796D25834'
       abi: AlphaHunterV3
-      startBlock: 7005401
+      startBlock: 6385978
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
