@@ -10,19 +10,19 @@ sources:
     type: subgraph_entity
     subgraphs:
       - name: storyhunt-subgraph-new
-        version: v1.0.9
+        version: v1.0.10
     name: harvest_event
   storyhunt.claim_events:
     type: subgraph_entity
     subgraphs:
       - name: storyhunt-subgraph-new
-        version: v1.0.9
+        version: v1.0.10
     name: claim_event
   storyhunt.vesting_schedules:
     type: subgraph_entity
     subgraphs:
       - name: storyhunt-subgraph-dev
-        version: v1.0.9
+        version: v1.0.10
     name: vesting_schedule
 transforms:
   storyhunt.filtered_harvest_events:
