@@ -1,62 +1,64 @@
-name: harvest-vesting-prodv2
-version: 1
+name: harvest-vesting-dev
+version: 4
 resource_size: s
+from_snapshot:
+  id: snapshot-cmdkl45wueh2d01zlak0l8mtz
+  created_at: 1753554580674
 apiVersion: 3
 sources:
   storyhunt.harvest_events:
     type: subgraph_entity
     subgraphs:
-      - name: storyhunt-subgraph-prodv2
-        version: v1.0.6
+      - name: storyhunt-subgraph-new
+        version: v1.0.9
     name: harvest_event
   storyhunt.claim_events:
     type: subgraph_entity
     subgraphs:
-      - name: storyhunt-subgraph-prodv2
-        version: v1.0.6
+      - name: storyhunt-subgraph-new
+        version: v1.0.9
     name: claim_event
   storyhunt.vesting_schedules:
     type: subgraph_entity
     subgraphs:
-      - name: storyhunt-subgraph-prodv2
-        version: v1.0.6
+      - name: storyhunt-subgraph-dev
+        version: v1.0.9
     name: vesting_schedule
 transforms:
   storyhunt.filtered_harvest_events:
-    sql: |
-      SELECT * FROM storyhunt.harvest_events
-      WHERE weth_to_ip_owner > 0 OR weth_to_buyback > 0 OR weth_collected > 0 OR tokens_collected > 0 OR tokens_burned > 0
+    type: sql
     primary_key: id
+    sql: >
+      SELECT * FROM storyhunt.harvest_events
+
+      WHERE weth_to_ip_owner > 0 OR weth_to_buyback > 0 OR weth_collected > 0 OR
+      tokens_collected > 0 OR tokens_burned > 0
   storyhunt.filtered_claim_events:
+    type: sql
+    primary_key: id
     sql: |
       SELECT * FROM storyhunt.claim_events
       WHERE eth_amount > 0 OR token_amount > 0
-    primary_key: id
-  storyhunt.filtered_vesting_schedules:
-    sql: |
-      SELECT * FROM storyhunt.vesting_schedules
-      WHERE total_amount > 0
-    primary_key: id
 sinks:
   postgres_storyhunt.harvest_events_public_storyhunt_harvest_events:
     type: postgres
     table: storyhunt_harvest_events
     schema: public
-    secret_name: POSTGRES_SECRET_PRODV2
-    description: "Postgres sink for StoryHunt harvest events with filtering"
+    secret_name: POSTGRES_SECRET_DEV
+    description: Postgres sink for StoryHunt harvest events with filtering
     from: storyhunt.filtered_harvest_events
   postgres_storyhunt.claim_events_public_storyhunt_claim_events:
     type: postgres
     table: storyhunt_claim_events
     schema: public
-    secret_name: POSTGRES_SECRET_PRODV2
-    description: "Postgres sink for StoryHunt claim events with filtering"
+    secret_name: POSTGRES_SECRET_DEV
+    description: Postgres sink for StoryHunt claim events with filtering
     from: storyhunt.filtered_claim_events
   postgres_storyhunt.vesting_schedules_public_storyhunt_vesting_schedules:
     type: postgres
     table: storyhunt_vesting_schedules
     schema: public
-    secret_name: POSTGRES_SECRET_PRODV2
+    secret_name: POSTGRES_SECRET_DEV
     description: "Postgres sink for StoryHunt vesting schedules with filtering"
     from: storyhunt.filtered_vesting_schedules
-dedicated_egress_ip: true
+use_dedicated_ip: false
