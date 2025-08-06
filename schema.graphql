@@ -91,12 +91,9 @@ type Token @entity {
   # price of that chain's native token, effectively, this should be renamed
   # derivedNative
   derivedIP: BigDecimal!
-<<<<<<< HEAD
-=======
   # <-- New field for market capitalization
   marketCap: BigDecimal!
   lastMarketCapUpdate: BigInt
->>>>>>> 49590da (update add new event)
   # pools token is in that are white listed for USD pricing
   whitelistPools: [Pool!]!
   # derived fields
@@ -405,13 +402,10 @@ type Swap @entity {
   tick: BigInt!
   # index within the txn
   logIndex: BigInt
-<<<<<<< HEAD
-=======
   # PnL in USD
   pnlUSD: BigDecimal!
   # PnL in IP (native token)
   pnlIP: BigDecimal!
->>>>>>> 49590da (update add new event)
 }
 
 type Collect @entity {
