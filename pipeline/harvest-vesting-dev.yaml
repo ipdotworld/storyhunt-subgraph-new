@@ -1,5 +1,5 @@
 name: harvest-vesting-dev
-version: 4
+version: 5
 resource_size: s
 from_snapshot:
   id: snapshot-cmdkl45wueh2d01zlak0l8mtz
@@ -21,7 +21,7 @@ sources:
   storyhunt.vesting_schedules:
     type: subgraph_entity
     subgraphs:
-      - name: storyhunt-subgraph-dev
+      - name: storyhunt-subgraph-new
         version: v1.0.10
     name: vesting_schedule
 transforms:
@@ -39,6 +39,12 @@ transforms:
     sql: |
       SELECT * FROM storyhunt.claim_events
       WHERE eth_amount > 0 OR token_amount > 0
+  storyhunt.filtered_vesting_schedules:
+    type: sql
+    primary_key: id
+    sql: |
+      SELECT * FROM storyhunt.vesting_schedules
+      WHERE total_amount > 0
 sinks:
   postgres_storyhunt.harvest_events_public_storyhunt_harvest_events:
     type: postgres
