@@ -50,21 +50,21 @@ sinks:
     type: postgres
     table: storyhunt_harvest_events
     schema: public
-    secret_name: POSTGRES_SECRET_DEV
+    secret_name: POSTGRES_SECRET_DEV_NEW
     description: Postgres sink for StoryHunt harvest events with filtering
     from: storyhunt.filtered_harvest_events
   postgres_storyhunt.claim_events_public_storyhunt_claim_events:
     type: postgres
     table: storyhunt_claim_events
     schema: public
-    secret_name: POSTGRES_SECRET_DEV
+    secret_name: POSTGRES_SECRET_DEV_NEW
     description: Postgres sink for StoryHunt claim events with filtering
     from: storyhunt.filtered_claim_events
   postgres_storyhunt.vesting_schedules_public_storyhunt_vesting_schedules:
     type: postgres
     table: storyhunt_vesting_schedules
     schema: public
-    secret_name: POSTGRES_SECRET_DEV
+    secret_name: POSTGRES_SECRET_DEV_NEW
     description: "Postgres sink for StoryHunt vesting schedules with filtering"
     from: storyhunt.filtered_vesting_schedules
-use_dedicated_ip: false
+use_dedicated_ip: true
