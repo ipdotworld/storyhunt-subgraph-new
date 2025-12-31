@@ -4,14 +4,10 @@ import { Bundle, Factory, Pool, PoolDayData, Swap, Token } from '../../types/sch
 import { Swap as SwapEvent } from '../../types/templates/Pool/Pool'
 import { convertTokenToDecimal, loadTransaction, safeDiv } from '../../utils'
 import { getSubgraphConfig, SubgraphConfig } from '../../utils/chains'
-import { ONE_BI, SECONDS_PER_YEAR, ZERO_BD, ZERO_BI } from '../../utils/constants'
+import { ONE_BI, ZERO_BD, ZERO_BI } from '../../utils/constants'
 import {
   updatePoolDayData,
-  updatePoolHourData,
-  updateTokenDayData,
-  updateTokenHourData,
   updateStoryHuntDayData,
-  updateTokenMinuteData,
   updateTokenMarketCap,
 } from '../../utils/intervalUpdates'
 import {
@@ -20,7 +16,6 @@ import {
   getTrackedAmountUSD,
   sqrtPriceX96ToTokenPrices,
 } from '../../utils/pricing'
-import { cleanupOldTokenMinuteData } from '../../utils/cleanUpUtills'
 
 // Helper function to compute the absolute value of a BigDecimal
 function bdAbs(x: BigDecimal): BigDecimal {
@@ -304,62 +299,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
 
     // interval data updates
     const storyhuntDayData = updateStoryHuntDayData(event, factoryAddress)
-    const poolDayData = updatePoolDayData(event) // moved higher
-    const poolHourData = updatePoolHourData(event)
-    const token0DayData = updateTokenDayData(token0 as Token, event)
-    const token1DayData = updateTokenDayData(token1 as Token, event)
-
-    // Determine if this is a buy or sell for each token
-    const isToken0Buy = amount0.lt(ZERO_BD) // amount0 negative means token0 was bought
-    const isToken1Buy = amount1.lt(ZERO_BD) // amount1 negative means token1 was bought
-
-    // Update token minute data with buy/sell info
-    const token0MinuteData = updateTokenMinuteData(token0 as Token, event)
-    const token1MinuteData = updateTokenMinuteData(token1 as Token, event)
-
-    if (isToken0Buy) {
-      token0MinuteData.buyTxCount = token0MinuteData.buyTxCount.plus(ONE_BI)
-      token0MinuteData.buyVolume = token0MinuteData.buyVolume.plus(amount0Abs)
-      token0MinuteData.buyVolumeUSD = token0MinuteData.buyVolumeUSD.plus(validatedAmountTotalUSDTracked)
-    } else {
-      token0MinuteData.sellTxCount = token0MinuteData.sellTxCount.plus(ONE_BI)
-      token0MinuteData.sellVolume = token0MinuteData.sellVolume.plus(amount0Abs)
-      token0MinuteData.sellVolumeUSD = token0MinuteData.sellVolumeUSD.plus(validatedAmountTotalUSDTracked)
-    }
-
-    if (isToken1Buy) {
-      token1MinuteData.buyTxCount = token1MinuteData.buyTxCount.plus(ONE_BI)
-      token1MinuteData.buyVolume = token1MinuteData.buyVolume.plus(amount1Abs)
-      token1MinuteData.buyVolumeUSD = token1MinuteData.buyVolumeUSD.plus(validatedAmountTotalUSDTracked)
-    } else {
-      token1MinuteData.sellTxCount = token1MinuteData.sellTxCount.plus(ONE_BI)
-      token1MinuteData.sellVolume = token1MinuteData.sellVolume.plus(amount1Abs)
-      token1MinuteData.sellVolumeUSD = token1MinuteData.sellVolumeUSD.plus(validatedAmountTotalUSDTracked)
-    }
-
-    // Update token hour data with buy/sell info
-    const token0HourData = updateTokenHourData(token0 as Token, event)
-    const token1HourData = updateTokenHourData(token1 as Token, event)
-
-    if (isToken0Buy) {
-      token0HourData.buyTxCount = token0HourData.buyTxCount.plus(ONE_BI)
-      token0HourData.buyVolume = token0HourData.buyVolume.plus(amount0Abs)
-      token0HourData.buyVolumeUSD = token0HourData.buyVolumeUSD.plus(validatedAmountTotalUSDTracked)
-    } else {
-      token0HourData.sellTxCount = token0HourData.sellTxCount.plus(ONE_BI)
-      token0HourData.sellVolume = token0HourData.sellVolume.plus(amount0Abs)
-      token0HourData.sellVolumeUSD = token0HourData.sellVolumeUSD.plus(validatedAmountTotalUSDTracked)
-    }
-
-    if (isToken1Buy) {
-      token1HourData.buyTxCount = token1HourData.buyTxCount.plus(ONE_BI)
-      token1HourData.buyVolume = token1HourData.buyVolume.plus(amount1Abs)
-      token1HourData.buyVolumeUSD = token1HourData.buyVolumeUSD.plus(validatedAmountTotalUSDTracked)
-    } else {
-      token1HourData.sellTxCount = token1HourData.sellTxCount.plus(ONE_BI)
-      token1HourData.sellVolume = token1HourData.sellVolume.plus(amount1Abs)
-      token1HourData.sellVolumeUSD = token1HourData.sellVolumeUSD.plus(validatedAmountTotalUSDTracked)
-    }
+    const poolDayData = updatePoolDayData(event)
 
     // update volume metrics using validated volume
     storyhuntDayData.volumeIP = storyhuntDayData.volumeIP.plus(validatedAmountTotalIPTracked)
@@ -371,62 +311,9 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     poolDayData.volumeToken1 = poolDayData.volumeToken1.plus(amount1Abs)
     poolDayData.feesUSD = poolDayData.feesUSD.plus(feesUSD)
 
-    poolHourData.volumeUSD = poolHourData.volumeUSD.plus(validatedAmountTotalUSDTracked)
-    poolHourData.volumeToken0 = poolHourData.volumeToken0.plus(amount0Abs)
-    poolHourData.volumeToken1 = poolHourData.volumeToken1.plus(amount1Abs)
-    poolHourData.feesUSD = poolHourData.feesUSD.plus(feesUSD)
-
-    token0DayData.volume = token0DayData.volume.plus(amount0Abs)
-    token0DayData.volumeUSD = token0DayData.volumeUSD.plus(validatedAmountTotalUSDTracked)
-    token0DayData.untrackedVolumeUSD = token0DayData.untrackedVolumeUSD.plus(validatedAmountTotalUSDTracked)
-    token0DayData.feesUSD = token0DayData.feesUSD.plus(feesUSD)
-
-    token0HourData.volume = token0HourData.volume.plus(amount0Abs)
-    token0HourData.volumeUSD = token0HourData.volumeUSD.plus(validatedAmountTotalUSDTracked)
-    token0HourData.untrackedVolumeUSD = token0HourData.untrackedVolumeUSD.plus(validatedAmountTotalUSDTracked)
-    token0HourData.feesUSD = token0HourData.feesUSD.plus(feesUSD)
-
-    token0MinuteData.volume = token0MinuteData.volume.plus(amount0Abs)
-    token0MinuteData.volumeUSD = token0MinuteData.volumeUSD.plus(validatedAmountTotalUSDTracked)
-    token0MinuteData.untrackedVolumeUSD = token0MinuteData.untrackedVolumeUSD.plus(validatedAmountTotalUSDTracked)
-    token0MinuteData.feesUSD = token0MinuteData.feesUSD.plus(feesUSD)
-
-    token1DayData.volume = token1DayData.volume.plus(amount1Abs)
-    token1DayData.volumeUSD = token1DayData.volumeUSD.plus(validatedAmountTotalUSDTracked)
-    token1DayData.untrackedVolumeUSD = token1DayData.untrackedVolumeUSD.plus(validatedAmountTotalUSDTracked)
-    token1DayData.feesUSD = token1DayData.feesUSD.plus(feesUSD)
-
-    token1HourData.volume = token1HourData.volume.plus(amount1Abs)
-    token1HourData.volumeUSD = token1HourData.volumeUSD.plus(validatedAmountTotalUSDTracked)
-    token1HourData.untrackedVolumeUSD = token1HourData.untrackedVolumeUSD.plus(validatedAmountTotalUSDTracked)
-    token1HourData.feesUSD = token1HourData.feesUSD.plus(feesUSD)
-
-    token1MinuteData.volume = token1MinuteData.volume.plus(amount1Abs)
-    token1MinuteData.volumeUSD = token1MinuteData.volumeUSD.plus(validatedAmountTotalUSDTracked)
-    token1MinuteData.untrackedVolumeUSD = token1MinuteData.untrackedVolumeUSD.plus(validatedAmountTotalUSDTracked)
-    token1MinuteData.feesUSD = token1MinuteData.feesUSD.plus(feesUSD)
-
-    //Clean up function
-    cleanupOldTokenMinuteData(
-      event.block.timestamp,
-      pool.token0
-    )
-    cleanupOldTokenMinuteData(
-      event.block.timestamp,
-      pool.token1
-    )
-
     swap.save()
-    token0DayData.save()
-    token1DayData.save()
     storyhuntDayData.save()
     poolDayData.save()
-    poolHourData.save()
-    token0HourData.save()
-    token1HourData.save()
-    token0MinuteData.save()
-    token1MinuteData.save()
-    poolHourData.save()
     factory.save()
     pool.save()
     token0.save()
