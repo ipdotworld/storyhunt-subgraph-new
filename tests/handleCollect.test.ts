@@ -126,17 +126,5 @@ describe('handleMint', () => {
         collectedAmountToken1.times(TEST_WIP_DERIVED_IP.times(TEST_IP_PRICE_USD)).neg().toString(),
       ],
     ])
-
-    assertObjectMatches('Collect', MOCK_EVENT.transaction.hash.toHexString() + '-' + MOCK_EVENT.logIndex.toString(), [
-      ['transaction', MOCK_EVENT.transaction.hash.toHexString()],
-      ['pool', USDC_WIP_03_MAINNET_POOL],
-      ['owner', COLLECT_FIXTURE.owner.toHexString()],
-      ['amount0', collectedAmountToken0.toString()],
-      ['amount1', collectedAmountToken1.toString()],
-      ['amountUSD', trackedCollectedAmountUSD.toString()],
-      ['tickLower', COLLECT_FIXTURE.tickLower.toString()],
-      ['tickUpper', COLLECT_FIXTURE.tickUpper.toString()],
-      ['logIndex', MOCK_EVENT.logIndex.toString()],
-    ])
   })
 })

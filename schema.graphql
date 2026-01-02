@@ -159,9 +159,7 @@ type Pool @entity {
   poolDayData: [PoolDayData!]! @derivedFrom(field: "pool")
   # derived fields
   mints: [Mint!]! @derivedFrom(field: "pool")
-  burns: [Burn!]! @derivedFrom(field: "pool")
   swaps: [Swap!]! @derivedFrom(field: "pool")
-  collects: [Collect!]! @derivedFrom(field: "pool")
   ticks: [Tick!]! @derivedFrom(field: "pool")
   from: String
   feesIP: BigDecimal!
@@ -257,10 +255,8 @@ type Transaction @entity {
   gasPrice: BigInt!
   # derived values
   mints: [Mint]! @derivedFrom(field: "transaction")
-  burns: [Burn]! @derivedFrom(field: "transaction")
   swaps: [Swap]! @derivedFrom(field: "transaction")
   flashed: [Flash]! @derivedFrom(field: "transaction")
-  collects: [Collect]! @derivedFrom(field: "transaction")
   poolId: String!
   from: String!
 }
@@ -300,39 +296,6 @@ type Mint @entity {
   logIndex: BigInt
 }
 
-type Burn @entity {
-  # transaction hash + "#" + index in mints Transaction array
-  id: ID!
-  # txn burn was included in
-  transaction: Transaction!
-  # pool position is within
-  pool: Pool!
-  # allow indexing by tokens
-  token0: Token!
-  # allow indexing by tokens
-  token1: Token!
-  # need this to pull recent txns for specific token or pool
-  timestamp: BigInt!
-  # owner of position where liquidity was burned
-  owner: String
-  # txn origin
-  origin: String! # the EOA that initiated the txn
-  # amouny of liquidity burned
-  amount: BigInt!
-  # amount of token 0 burned
-  amount0: BigDecimal!
-  # amount of token 1 burned
-  amount1: BigDecimal!
-  # derived amount based on available prices of tokens
-  amountUSD: BigDecimal
-  # lower tick of position
-  tickLower: BigInt!
-  # upper tick of position
-  tickUpper: BigInt!
-  # position within the transactions
-  logIndex: BigInt
-}
-
 type Swap @entity {
   # transaction hash + "#" + index in swaps Transaction array
   id: ID!
@@ -368,32 +331,6 @@ type Swap @entity {
   pnlUSD: BigDecimal!
   # PnL in IP (native token)
   pnlIP: BigDecimal!
-}
-
-type Collect @entity {
-  # transaction hash + "#" + index in collect Transaction array
-  id: ID!
-  # pointer to txn
-  transaction: Transaction!
-  # timestamp of event
-  timestamp: BigInt!
-  # pool collect occured within
-  pool: Pool!
-  # owner of position collect was performed on
-  owner: String
-  # amount of token0 collected
-  amount0: BigDecimal!
-  # amount of token1 collected
-  amount1: BigDecimal!
-  # derived amount based on available prices of tokens
-  amountUSD: BigDecimal
-  # lower tick of position
-  tickLower: BigInt!
-  # uppper tick of position
-  tickUpper: BigInt!
-  # index within the txn
-  logIndex: BigInt
-  from: String
 }
 
 type Flash @entity {

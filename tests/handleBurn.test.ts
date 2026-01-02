@@ -141,23 +141,6 @@ describe('handleBurn', () => {
       ['totalValueLockedUSD', '0'],
     ])
 
-    assertObjectMatches('Burn', MOCK_EVENT.transaction.hash.toHexString() + '-' + MOCK_EVENT.logIndex.toString(), [
-      ['transaction', MOCK_EVENT.transaction.hash.toHexString()],
-      ['timestamp', MOCK_EVENT.block.timestamp.toString()],
-      ['pool', USDC_WIP_03_MAINNET_POOL],
-      ['token0', USDC_MAINNET_FIXTURE.address],
-      ['token1', WIP_MAINNET_FIXTURE.address],
-      ['owner', BURN_FIXTURE.owner.toHexString()],
-      ['origin', MOCK_EVENT.transaction.from.toHexString()],
-      ['amount', BURN_FIXTURE.amount.toString()],
-      ['amount0', amountToken0.toString()],
-      ['amount1', amountToken1.toString()],
-      ['amountUSD', poolTotalValueLockedUSD.toString()],
-      ['tickUpper', BURN_FIXTURE.tickUpper.toString()],
-      ['tickLower', BURN_FIXTURE.tickLower.toString()],
-      ['logIndex', MOCK_EVENT.logIndex.toString()],
-    ])
-
     assertObjectMatches('Tick', USDC_WIP_03_MAINNET_POOL + '#' + BURN_FIXTURE.tickLower.toString(), [
       ['liquidityGross', BURN_FIXTURE.amount.neg().toString()],
       ['liquidityNet', BURN_FIXTURE.amount.neg().toString()],

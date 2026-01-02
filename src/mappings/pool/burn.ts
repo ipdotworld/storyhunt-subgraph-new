@@ -1,8 +1,8 @@
 import { BigInt } from '@graphprotocol/graph-ts'
 
-import { Bundle, Burn, Factory, Pool, Tick, Token } from '../../types/schema'
+import { Bundle, Factory, Pool, Tick, Token } from '../../types/schema'
 import { Burn as BurnEvent } from '../../types/templates/Pool/Pool'
-import { convertTokenToDecimal, loadTransaction } from '../../utils'
+import { convertTokenToDecimal } from '../../utils'
 import { getSubgraphConfig, SubgraphConfig } from '../../utils/chains'
 import { ONE_BI } from '../../utils/constants'
 import {
@@ -57,24 +57,6 @@ export function handleBurnHelper(event: BurnEvent, subgraphConfig: SubgraphConfi
       pool.liquidity = pool.liquidity.minus(event.params.amount)
     }
 
-    // burn entity
-    const transaction = loadTransaction(event, pool.id)
-    const burn = new Burn(transaction.id + '-' + event.logIndex.toString())
-    burn.transaction = transaction.id
-    burn.timestamp = transaction.timestamp
-    burn.pool = pool.id
-    burn.token0 = pool.token0
-    burn.token1 = pool.token1
-    burn.owner = event.params.owner.toHexString()
-    burn.origin = event.transaction.from.toHexString()
-    burn.amount = event.params.amount
-    burn.amount0 = amount0
-    burn.amount1 = amount1
-    burn.amountUSD = amountUSD
-    burn.tickLower = BigInt.fromI32(event.params.tickLower)
-    burn.tickUpper = BigInt.fromI32(event.params.tickUpper)
-    burn.logIndex = event.logIndex
-
     // tick entities
     const lowerTickId = poolAddress + '#' + BigInt.fromI32(event.params.tickLower).toString()
     const upperTickId = poolAddress + '#' + BigInt.fromI32(event.params.tickUpper).toString()
@@ -97,6 +79,5 @@ export function handleBurnHelper(event: BurnEvent, subgraphConfig: SubgraphConfi
     token1.save()
     pool.save()
     factory.save()
-    burn.save()
   }
 }

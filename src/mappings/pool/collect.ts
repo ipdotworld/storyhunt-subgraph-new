@@ -1,8 +1,6 @@
-import { BigInt } from '@graphprotocol/graph-ts'
-
-import { Bundle, Collect, Factory, Pool, Token } from '../../types/schema'
+import { Bundle, Factory, Pool, Token } from '../../types/schema'
 import { Collect as CollectEvent } from '../../types/templates/Pool/Pool'
-import { convertTokenToDecimal, loadTransaction } from '../../utils'
+import { convertTokenToDecimal } from '../../utils'
 import { getSubgraphConfig, SubgraphConfig } from '../../utils/chains'
 import { ONE_BI } from '../../utils/constants'
 import {
@@ -24,7 +22,6 @@ export function handleCollectHelper(event: CollectEvent, subgraphConfig: Subgrap
   if (pool == null) {
     return
   }
-  const transaction = loadTransaction(event, pool.id)
   const factory = Factory.load(factoryAddress)!
 
   const token0 = Token.load(pool.token0)
@@ -77,19 +74,6 @@ export function handleCollectHelper(event: CollectEvent, subgraphConfig: Subgrap
   factory.totalValueLockedIP = factory.totalValueLockedIP.plus(pool.totalValueLockedIP)
   factory.totalValueLockedUSD = factory.totalValueLockedIP.times(bundle.IPPriceUSD)
 
-  const collect = new Collect(transaction.id + '-' + event.logIndex.toString())
-  collect.transaction = transaction.id
-  collect.timestamp = event.block.timestamp
-  collect.pool = pool.id
-  collect.owner = event.params.owner.toHexString()
-  collect.amount0 = collectedAmountToken0
-  collect.amount1 = collectedAmountToken1
-  collect.amountUSD = trackedCollectedAmountUSD
-  collect.tickLower = BigInt.fromI32(event.params.tickLower)
-  collect.tickUpper = BigInt.fromI32(event.params.tickUpper)
-  collect.logIndex = event.logIndex
-  collect.from = event.transaction.from.toHexString()
-
   updateStoryHuntDayData(event, factoryAddress)
   updatePoolDayData(event)
 
@@ -97,7 +81,6 @@ export function handleCollectHelper(event: CollectEvent, subgraphConfig: Subgrap
   token1.save()
   factory.save()
   pool.save()
-  collect.save()
 
   return
 }
