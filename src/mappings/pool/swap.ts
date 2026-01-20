@@ -186,8 +186,8 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     const poolDayData = updatePoolDayData(event)
 
     // update volume metrics using validated volume
-    storyhuntDayData.volumeIP = storyhuntDayData.volumeIP.plus(validatedAmountTotalIPTracked)
-    storyhuntDayData.volumeUSD = storyhuntDayData.volumeUSD.plus(validatedAmountTotalUSDTracked)
+    storyhuntDayData.volumeIP = storyhuntDayData.volumeIP.plus(amountTotalIPTracked)
+    storyhuntDayData.volumeUSD = storyhuntDayData.volumeUSD.plus(amountTotalUSDTracked)
     storyhuntDayData.feesUSD = storyhuntDayData.feesUSD.plus(feesUSD)
 
     poolDayData.volumeUSD = poolDayData.volumeUSD.plus(amountTotalUSDTracked)

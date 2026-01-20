@@ -5,9 +5,6 @@ import { Bundle, Factory, Pool, Token } from '../src/types/schema'
 import { ADDRESS_ZERO, ZERO_BD, ZERO_BI } from '../src/utils/constants'
 import {
   updatePoolDayData,
-  updatePoolHourData,
-  updateTokenDayData,
-  updateTokenHourData,
   updateStoryHuntDayData,
 } from '../src/utils/intervalUpdates'
 import {
@@ -188,8 +185,6 @@ describe('pool interval data', () => {
     const poolEvent = MOCK_EVENT
     poolEvent.address = Address.fromString(USDC_WIP_03_MAINNET_POOL)
 
-    updatePoolHourData(poolEvent)
-
     const hourIndex = poolEvent.block.timestamp.toI32() / 3600
     const hourStartUnix = hourIndex * 3600
     const hourPoolID = poolEvent.address.toHexString().concat('-').concat(hourIndex.toString())
@@ -218,8 +213,6 @@ describe('pool interval data', () => {
     pool.token0Price = BigDecimal.fromString('2')
     pool.save()
 
-    updatePoolHourData(poolEvent)
-
     assertObjectMatches('PoolHourData', hourPoolID, [
       ['periodStartUnix', hourStartUnix.toString()],
       ['pool', USDC_WIP_03_MAINNET_POOL],
@@ -243,8 +236,6 @@ describe('pool interval data', () => {
     // update the low price
     pool.token0Price = BigDecimal.fromString('0')
     pool.save()
-
-    updatePoolHourData(poolEvent)
 
     assertObjectMatches('PoolHourData', hourPoolID, [
       ['periodStartUnix', hourStartUnix.toString()],
