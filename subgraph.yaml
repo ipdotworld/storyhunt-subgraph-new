@@ -57,6 +57,10 @@ dataSources:
         - TreasuryFlushEvent
         - IpTokenLink
         - LiquidityCollectedEvent
+        - PoolTokenMap
+        - TokenRewardSummary
+        - IpRewardSummary
+        - GlobalRewardSummary
       abis:
         - name: IPWorld
           file: ./abis/IPWorld.json
@@ -93,6 +97,9 @@ dataSources:
         - VestingSchedule
         - VestingReleaseEvent
         - EthDepositEvent
+        - TokenRewardSummary
+        - IpRewardSummary
+        - GlobalRewardSummary
       abis:
         - name: IPOwnerVault
           file: ./abis/IPOwnerVault.json

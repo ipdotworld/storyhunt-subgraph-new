@@ -810,3 +810,85 @@ type EthDepositEvent @entity {
   timestamp: BigInt!
   transactionHash: String!
 }
+
+type PoolTokenMap @entity {
+  id: ID!
+  token: String!
+}
+
+type TokenRewardSummary @entity {
+  id: ID!
+  ipaId: String
+  vestingTotalAmount: BigInt!
+  vestingClaimedAmount: BigInt!
+  vestingClaimedEthAmount: BigInt!
+  harvestCount: BigInt!
+  tokenCollected: BigInt!
+  tokenToIpTreasury: BigInt!
+  tokenToAirdrop: BigInt!
+  wipCollected: BigInt!
+  wipToIpOwner: BigInt!
+  wipToBuyback: BigInt!
+  wipToAirdrop: BigInt!
+  wipToProtocol: BigInt!
+  treasuryFlushedAmount: BigInt!
+  airdropTokenClaimed: BigInt!
+  airdropWipClaimed: BigInt!
+  airdropClaimCount: BigInt!
+  lpFeeWeth: BigInt!
+  lpFeeToken: BigInt!
+  ethDeposited: BigInt!
+  lastUpdatedBlock: BigInt!
+  lastUpdatedTimestamp: BigInt!
+}
+
+type IpRewardSummary @entity {
+  id: ID!
+  tokenCount: BigInt!
+  vestingTotalAmount: BigInt!
+  vestingClaimedAmount: BigInt!
+  vestingClaimedEthAmount: BigInt!
+  harvestCount: BigInt!
+  tokenCollected: BigInt!
+  tokenToIpTreasury: BigInt!
+  tokenToAirdrop: BigInt!
+  wipCollected: BigInt!
+  wipToIpOwner: BigInt!
+  wipToBuyback: BigInt!
+  wipToAirdrop: BigInt!
+  wipToProtocol: BigInt!
+  treasuryFlushedAmount: BigInt!
+  airdropTokenClaimed: BigInt!
+  airdropWipClaimed: BigInt!
+  airdropClaimCount: BigInt!
+  lpFeeWeth: BigInt!
+  lpFeeToken: BigInt!
+  ethDeposited: BigInt!
+  lastUpdatedBlock: BigInt!
+  lastUpdatedTimestamp: BigInt!
+}
+
+type GlobalRewardSummary @entity {
+  id: ID!
+  vestingTotalAmount: BigInt!
+  vestingClaimedAmount: BigInt!
+  vestingClaimedEthAmount: BigInt!
+  harvestCount: BigInt!
+  tokenCollected: BigInt!
+  tokenToIpTreasury: BigInt!
+  tokenToAirdrop: BigInt!
+  wipCollected: BigInt!
+  wipToIpOwner: BigInt!
+  wipToBuyback: BigInt!
+  wipToAirdrop: BigInt!
+  wipToProtocol: BigInt!
+  treasuryFlushedAmount: BigInt!
+  airdropTokenClaimed: BigInt!
+  airdropWipClaimed: BigInt!
+  airdropClaimCount: BigInt!
+  lpFeeWeth: BigInt!
+  lpFeeToken: BigInt!
+  ethDeposited: BigInt!
+  lastUpdatedBlock: BigInt!
+  lastUpdatedTimestamp: BigInt!
+}
