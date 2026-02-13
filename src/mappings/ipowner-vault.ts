@@ -1,5 +1,5 @@
-import { VestedTokensAndEthClaimed, VestingScheduleCreated } from '../types/IPOwnerVault/IPOwnerVault'
-import { ClaimEvent, VestingSchedule } from '../types/schema'
+import { VestedTokensAndEthClaimed, VestingScheduleCreated, ReleasedVested, EthDeposited } from '../types/IPOwnerVault/IPOwnerVault'
+import { ClaimEvent, VestingSchedule, VestingReleaseEvent, EthDepositEvent } from '../types/schema'
 
 export function handleVestedTokensAndEthClaimed(event: VestedTokensAndEthClaimed): void {
   const claimEvent = new ClaimEvent(event.transaction.hash.toHexString() + '#' + event.logIndex.toString())
@@ -27,4 +27,30 @@ export function handleVestingScheduleCreated(event: VestingScheduleCreated): voi
   vestingSchedule.transactionHash = event.transaction.hash.toHexString()
 
   vestingSchedule.save()
+}
+
+export function handleReleasedVested(event: ReleasedVested): void {
+  const id = event.transaction.hash.toHexString() + '#' + event.logIndex.toString()
+  const entity = new VestingReleaseEvent(id)
+
+  entity.token = event.params.token.toHexString()
+  entity.amount = event.params.amount
+  entity.blockNumber = event.block.number
+  entity.timestamp = event.block.timestamp
+  entity.transactionHash = event.transaction.hash.toHexString()
+
+  entity.save()
+}
+
+export function handleEthDeposited(event: EthDeposited): void {
+  const id = event.transaction.hash.toHexString() + '#' + event.logIndex.toString()
+  const entity = new EthDepositEvent(id)
+
+  entity.token = event.params.token.toHexString()
+  entity.amount = event.params.amount
+  entity.blockNumber = event.block.number
+  entity.timestamp = event.block.timestamp
+  entity.transactionHash = event.transaction.hash.toHexString()
+
+  entity.save()
 }

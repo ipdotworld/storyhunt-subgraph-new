@@ -53,6 +53,11 @@ dataSources:
       entities:
         - TokenDeployment
         - HarvestEvent
+        - HarvestDistributedEvent
+        - AirdropClaimEvent
+        - TreasuryFlushEvent
+        - IpTokenLink
+        - LiquidityCollectedEvent
       abis:
         - name: IPWorld
           file: ./abis/IPWorld.json
@@ -61,6 +66,16 @@ dataSources:
           handler: handleTokenDeployed
         - event: Harvest(indexed address,uint256,uint256,uint256,uint256,uint256)
           handler: handleHarvest
+        - event: HarvestDistributed(indexed address,uint256,uint256,uint256,uint256,uint256,uint256,uint256)
+          handler: handleHarvestDistributed
+        - event: AirdropClaimed(indexed address,indexed address,uint256,uint256)
+          handler: handleAirdropClaimed
+        - event: TreasuryFlushed(indexed address,indexed address,uint256)
+          handler: handleTreasuryFlushed
+        - event: Linked(indexed address,indexed address)
+          handler: handleLinked
+        - event: LiquidityCollected(indexed address,int24,int24,uint256,uint256)
+          handler: handleLiquidityCollected
 
   - kind: ethereum/contract
     name: IPOwnerVault
@@ -77,6 +92,8 @@ dataSources:
       entities:
         - ClaimEvent
         - VestingSchedule
+        - VestingReleaseEvent
+        - EthDepositEvent
       abis:
         - name: IPOwnerVault
           file: ./abis/IPOwnerVault.json
@@ -85,6 +102,10 @@ dataSources:
           handler: handleVestedTokensAndEthClaimed
         - event: VestingScheduleCreated(indexed address,uint256,uint64,uint64)
           handler: handleVestingScheduleCreated
+        - event: ReleasedVested(indexed address,uint256)
+          handler: handleReleasedVested
+        - event: EthDeposited(indexed address,uint256)
+          handler: handleEthDeposited
 
 templates:
   - kind: ethereum/contract

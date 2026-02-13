@@ -721,3 +721,79 @@ type VestingSchedule @entity {
   timestamp: BigInt!
   transactionHash: String!
 }
+
+type HarvestDistributedEvent @entity {
+  id: ID!
+  token: String!
+  tokenCollected: BigInt!
+  tokenToIpTreasury: BigInt!
+  tokenToAirdrop: BigInt!
+  wethCollected: BigInt!
+  wethToIpOwner: BigInt!
+  wethToBuyback: BigInt!
+  wethToAirdrop: BigInt!
+  wethToProtocol: BigInt!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: String!
+}
+
+type AirdropClaimEvent @entity {
+  id: ID!
+  token: String!
+  recipient: String!
+  tokenAmount: BigInt!
+  wethAmount: BigInt!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: String!
+}
+
+type TreasuryFlushEvent @entity {
+  id: ID!
+  token: String!
+  treasury: String!
+  amount: BigInt!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: String!
+}
+
+type IpTokenLink @entity {
+  id: ID!
+  ipaId: String!
+  token: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: String!
+}
+
+type LiquidityCollectedEvent @entity {
+  id: ID!
+  pool: String!
+  tickLower: BigInt!
+  tickUpper: BigInt!
+  wethAmount: BigInt!
+  tokenAmount: BigInt!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: String!
+}
+
+type VestingReleaseEvent @entity {
+  id: ID!
+  token: String!
+  amount: BigInt!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: String!
+}
+
+type EthDepositEvent @entity {
+  id: ID!
+  token: String!
+  amount: BigInt!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: String!
+}
