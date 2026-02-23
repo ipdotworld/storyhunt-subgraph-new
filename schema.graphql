@@ -571,3 +571,161 @@ type VestingSchedule @entity {
   timestamp: BigInt!
   transactionHash: String!
 }
+
+type HarvestDistributedEvent @entity {
+  id: ID!
+  token: String!
+  tokenCollected: BigInt!
+  tokenToIpTreasury: BigInt!
+  tokenToAirdrop: BigInt!
+  wethCollected: BigInt!
+  wethToIpOwner: BigInt!
+  wethToBuyback: BigInt!
+  wethToAirdrop: BigInt!
+  wethToProtocol: BigInt!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: String!
+}
+
+type AirdropClaimEvent @entity {
+  id: ID!
+  token: String!
+  recipient: String!
+  tokenAmount: BigInt!
+  wethAmount: BigInt!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: String!
+}
+
+type TreasuryFlushEvent @entity {
+  id: ID!
+  token: String!
+  treasury: String!
+  amount: BigInt!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: String!
+}
+
+type IpTokenLink @entity {
+  id: ID!
+  ipaId: String!
+  token: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: String!
+}
+
+type LiquidityCollectedEvent @entity {
+  id: ID!
+  pool: String!
+  tickLower: BigInt!
+  tickUpper: BigInt!
+  wethAmount: BigInt!
+  tokenAmount: BigInt!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: String!
+}
+
+type VestingReleaseEvent @entity {
+  id: ID!
+  token: String!
+  amount: BigInt!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: String!
+}
+
+type EthDepositEvent @entity {
+  id: ID!
+  token: String!
+  amount: BigInt!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: String!
+}
+
+type PoolTokenMap @entity {
+  id: ID!
+  token: String!
+}
+
+type TokenRewardSummary @entity {
+  id: ID!
+  ipaId: String
+  vestingTotalAmount: BigInt!
+  vestingClaimedAmount: BigInt!
+  vestingClaimedEthAmount: BigInt!
+  harvestCount: BigInt!
+  tokenCollected: BigInt!
+  tokenToIpTreasury: BigInt!
+  tokenToAirdrop: BigInt!
+  wipCollected: BigInt!
+  wipToIpOwner: BigInt!
+  wipToBuyback: BigInt!
+  wipToAirdrop: BigInt!
+  wipToProtocol: BigInt!
+  treasuryFlushedAmount: BigInt!
+  airdropTokenClaimed: BigInt!
+  airdropWipClaimed: BigInt!
+  airdropClaimCount: BigInt!
+  lpFeeWeth: BigInt!
+  lpFeeToken: BigInt!
+  ethDeposited: BigInt!
+  lastUpdatedBlock: BigInt!
+  lastUpdatedTimestamp: BigInt!
+}
+
+type IpRewardSummary @entity {
+  id: ID!
+  tokenCount: BigInt!
+  vestingTotalAmount: BigInt!
+  vestingClaimedAmount: BigInt!
+  vestingClaimedEthAmount: BigInt!
+  harvestCount: BigInt!
+  tokenCollected: BigInt!
+  tokenToIpTreasury: BigInt!
+  tokenToAirdrop: BigInt!
+  wipCollected: BigInt!
+  wipToIpOwner: BigInt!
+  wipToBuyback: BigInt!
+  wipToAirdrop: BigInt!
+  wipToProtocol: BigInt!
+  treasuryFlushedAmount: BigInt!
+  airdropTokenClaimed: BigInt!
+  airdropWipClaimed: BigInt!
+  airdropClaimCount: BigInt!
+  lpFeeWeth: BigInt!
+  lpFeeToken: BigInt!
+  ethDeposited: BigInt!
+  lastUpdatedBlock: BigInt!
+  lastUpdatedTimestamp: BigInt!
+}
+
+type GlobalRewardSummary @entity {
+  id: ID!
+  vestingTotalAmount: BigInt!
+  vestingClaimedAmount: BigInt!
+  vestingClaimedEthAmount: BigInt!
+  harvestCount: BigInt!
+  tokenCollected: BigInt!
+  tokenToIpTreasury: BigInt!
+  tokenToAirdrop: BigInt!
+  wipCollected: BigInt!
+  wipToIpOwner: BigInt!
+  wipToBuyback: BigInt!
+  wipToAirdrop: BigInt!
+  wipToProtocol: BigInt!
+  treasuryFlushedAmount: BigInt!
+  airdropTokenClaimed: BigInt!
+  airdropWipClaimed: BigInt!
+  airdropClaimCount: BigInt!
+  lpFeeWeth: BigInt!
+  lpFeeToken: BigInt!
+  ethDeposited: BigInt!
+  lastUpdatedBlock: BigInt!
+  lastUpdatedTimestamp: BigInt!
+}

@@ -1,62 +1,287 @@
 name: harvest-vesting-prodv2
-version: 1
+version: 2
 resource_size: s
 apiVersion: 3
 sources:
+  # Legacy / existing
   storyhunt.harvest_events:
     type: subgraph_entity
     subgraphs:
       - name: storyhunt-subgraph-prodv2
-        version: v1.0.6
+        version: v1.0.8
     name: harvest_event
   storyhunt.claim_events:
     type: subgraph_entity
     subgraphs:
       - name: storyhunt-subgraph-prodv2
-        version: v1.0.6
+        version: v1.0.8
     name: claim_event
   storyhunt.vesting_schedules:
     type: subgraph_entity
     subgraphs:
       - name: storyhunt-subgraph-prodv2
-        version: v1.0.6
+        version: v1.0.8
     name: vesting_schedule
+  # New reward event entities
+  storyhunt.harvest_distributed_events:
+    type: subgraph_entity
+    subgraphs:
+      - name: storyhunt-subgraph-prodv2
+        version: v1.0.8
+    name: harvest_distributed_event
+  storyhunt.airdrop_claim_events:
+    type: subgraph_entity
+    subgraphs:
+      - name: storyhunt-subgraph-prodv2
+        version: v1.0.8
+    name: airdrop_claim_event
+  storyhunt.treasury_flush_events:
+    type: subgraph_entity
+    subgraphs:
+      - name: storyhunt-subgraph-prodv2
+        version: v1.0.8
+    name: treasury_flush_event
+  storyhunt.liquidity_collected_events:
+    type: subgraph_entity
+    subgraphs:
+      - name: storyhunt-subgraph-prodv2
+        version: v1.0.8
+    name: liquidity_collected_event
+  storyhunt.vesting_release_events:
+    type: subgraph_entity
+    subgraphs:
+      - name: storyhunt-subgraph-prodv2
+        version: v1.0.8
+    name: vesting_release_event
+  storyhunt.eth_deposit_events:
+    type: subgraph_entity
+    subgraphs:
+      - name: storyhunt-subgraph-prodv2
+        version: v1.0.8
+    name: eth_deposit_event
+  # Pool -> token reverse map for LP joins
+  storyhunt.pool_token_maps:
+    type: subgraph_entity
+    subgraphs:
+      - name: storyhunt-subgraph-prodv2
+        version: v1.0.8
+    name: pool_token_map
+  # Token to IPA links and summary entities
+  storyhunt.ip_token_links:
+    type: subgraph_entity
+    subgraphs:
+      - name: storyhunt-subgraph-prodv2
+        version: v1.0.8
+    name: ip_token_link
+  storyhunt.token_reward_summaries:
+    type: subgraph_entity
+    subgraphs:
+      - name: storyhunt-subgraph-prodv2
+        version: v1.0.8
+    name: token_reward_summary
+  storyhunt.ip_reward_summaries:
+    type: subgraph_entity
+    subgraphs:
+      - name: storyhunt-subgraph-prodv2
+        version: v1.0.8
+    name: ip_reward_summary
+  storyhunt.global_reward_summaries:
+    type: subgraph_entity
+    subgraphs:
+      - name: storyhunt-subgraph-prodv2
+        version: v1.0.8
+    name: global_reward_summary
+
 transforms:
   storyhunt.filtered_harvest_events:
+    type: sql
+    primary_key: id
     sql: |
       SELECT * FROM storyhunt.harvest_events
-      WHERE weth_to_ip_owner > 0 OR weth_to_buyback > 0 OR weth_collected > 0 OR tokens_collected > 0 OR tokens_burned > 0
-    primary_key: id
+      WHERE weth_to_ip_owner > 0 OR weth_to_buyback > 0 OR weth_collected > 0 OR
+            tokens_collected > 0 OR tokens_burned > 0
   storyhunt.filtered_claim_events:
+    type: sql
+    primary_key: id
     sql: |
       SELECT * FROM storyhunt.claim_events
       WHERE eth_amount > 0 OR token_amount > 0
-    primary_key: id
   storyhunt.filtered_vesting_schedules:
+    type: sql
+    primary_key: id
     sql: |
       SELECT * FROM storyhunt.vesting_schedules
       WHERE total_amount > 0
+  storyhunt.filtered_harvest_distributed_events:
+    type: sql
     primary_key: id
+    sql: |
+      SELECT * FROM storyhunt.harvest_distributed_events
+      WHERE token_collected > 0 OR token_to_ip_treasury > 0 OR token_to_airdrop > 0 OR
+            weth_collected > 0 OR weth_to_ip_owner > 0 OR weth_to_buyback > 0 OR weth_to_airdrop > 0 OR weth_to_protocol > 0
+  storyhunt.filtered_airdrop_claim_events:
+    type: sql
+    primary_key: id
+    sql: |
+      SELECT * FROM storyhunt.airdrop_claim_events
+      WHERE token_amount > 0 OR weth_amount > 0
+  storyhunt.filtered_treasury_flush_events:
+    type: sql
+    primary_key: id
+    sql: |
+      SELECT * FROM storyhunt.treasury_flush_events
+      WHERE amount > 0
+  storyhunt.filtered_liquidity_collected_events:
+    type: sql
+    primary_key: id
+    sql: |
+      SELECT * FROM storyhunt.liquidity_collected_events
+      WHERE weth_amount > 0 OR token_amount > 0
+  storyhunt.filtered_vesting_release_events:
+    type: sql
+    primary_key: id
+    sql: |
+      SELECT * FROM storyhunt.vesting_release_events
+      WHERE amount > 0
+  storyhunt.filtered_eth_deposit_events:
+    type: sql
+    primary_key: id
+    sql: |
+      SELECT * FROM storyhunt.eth_deposit_events
+      WHERE amount > 0
+  storyhunt.passthrough_pool_token_maps:
+    type: sql
+    primary_key: id
+    sql: SELECT * FROM storyhunt.pool_token_maps
+  storyhunt.passthrough_ip_token_links:
+    type: sql
+    primary_key: id
+    sql: SELECT * FROM storyhunt.ip_token_links
+  storyhunt.token_reward_summaries_enriched:
+    type: sql
+    primary_key: id
+    sql: |
+      SELECT *,
+             (vesting_total_amount + token_to_ip_treasury + airdrop_token_claimed) AS total_token_amount,
+             (token_to_ip_treasury - treasury_flushed_amount) AS pending_treasury
+      FROM storyhunt.token_reward_summaries
+  storyhunt.ip_reward_summaries_enriched:
+    type: sql
+    primary_key: id
+    sql: |
+      SELECT *,
+             (vesting_total_amount + token_to_ip_treasury + airdrop_token_claimed) AS total_token_amount,
+             (token_to_ip_treasury - treasury_flushed_amount) AS pending_treasury
+      FROM storyhunt.ip_reward_summaries
+  storyhunt.global_reward_summaries_enriched:
+    type: sql
+    primary_key: id
+    sql: |
+      SELECT *,
+             (vesting_total_amount + token_to_ip_treasury + airdrop_token_claimed) AS total_token_amount,
+             (token_to_ip_treasury - treasury_flushed_amount) AS pending_treasury
+      FROM storyhunt.global_reward_summaries
+
 sinks:
+  # Legacy
   postgres_storyhunt.harvest_events_public_storyhunt_harvest_events:
     type: postgres
     table: storyhunt_harvest_events
     schema: public
     secret_name: POSTGRES_SECRET_PRODV2
-    description: "Postgres sink for StoryHunt harvest events with filtering"
+    description: Postgres sink for StoryHunt harvest events with filtering
     from: storyhunt.filtered_harvest_events
   postgres_storyhunt.claim_events_public_storyhunt_claim_events:
     type: postgres
     table: storyhunt_claim_events
     schema: public
     secret_name: POSTGRES_SECRET_PRODV2
-    description: "Postgres sink for StoryHunt claim events with filtering"
+    description: Postgres sink for StoryHunt claim events with filtering
     from: storyhunt.filtered_claim_events
   postgres_storyhunt.vesting_schedules_public_storyhunt_vesting_schedules:
     type: postgres
     table: storyhunt_vesting_schedules
     schema: public
     secret_name: POSTGRES_SECRET_PRODV2
-    description: "Postgres sink for StoryHunt vesting schedules with filtering"
+    description: Postgres sink for StoryHunt vesting schedules with filtering
     from: storyhunt.filtered_vesting_schedules
+  # New reward events
+  postgres_storyhunt.harvest_distributed_events:
+    type: postgres
+    table: storyhunt_harvest_distributed_events
+    schema: public
+    secret_name: POSTGRES_SECRET_PRODV2
+    description: HarvestDistributed events (token/weth breakdown per harvest)
+    from: storyhunt.filtered_harvest_distributed_events
+  postgres_storyhunt.airdrop_claim_events:
+    type: postgres
+    table: storyhunt_airdrop_claim_events
+    schema: public
+    secret_name: POSTGRES_SECRET_PRODV2
+    description: AirdropClaimed events (token + weth per recipient)
+    from: storyhunt.filtered_airdrop_claim_events
+  postgres_storyhunt.treasury_flush_events:
+    type: postgres
+    table: storyhunt_treasury_flush_events
+    schema: public
+    secret_name: POSTGRES_SECRET_PRODV2
+    description: TreasuryFlushed events (amount sent to treasury)
+    from: storyhunt.filtered_treasury_flush_events
+  postgres_storyhunt.liquidity_collected_events:
+    type: postgres
+    table: storyhunt_liquidity_collected_events
+    schema: public
+    secret_name: POSTGRES_SECRET_PRODV2
+    description: LiquidityCollected events (LP fees by pool)
+    from: storyhunt.filtered_liquidity_collected_events
+  postgres_storyhunt.vesting_release_events:
+    type: postgres
+    table: storyhunt_vesting_release_events
+    schema: public
+    secret_name: POSTGRES_SECRET_PRODV2
+    description: ReleasedVested events (vesting token releases)
+    from: storyhunt.filtered_vesting_release_events
+  postgres_storyhunt.eth_deposit_events:
+    type: postgres
+    table: storyhunt_eth_deposit_events
+    schema: public
+    secret_name: POSTGRES_SECRET_PRODV2
+    description: EthDeposited events (WIP deposited per token)
+    from: storyhunt.filtered_eth_deposit_events
+  # Maps and summaries
+  postgres_storyhunt.pool_token_maps:
+    type: postgres
+    table: storyhunt_pool_token_maps
+    schema: public
+    secret_name: POSTGRES_SECRET_PRODV2
+    description: Pool to token mapping for LP fee analytics by pool+token
+    from: storyhunt.passthrough_pool_token_maps
+  postgres_storyhunt.ip_token_links:
+    type: postgres
+    table: storyhunt_ip_token_links
+    schema: public
+    secret_name: POSTGRES_SECRET_PRODV2
+    description: Token-to-IP links (ipaId, token) for by-IP queries
+    from: storyhunt.passthrough_ip_token_links
+  postgres_storyhunt.token_reward_summaries:
+    type: postgres
+    table: storyhunt_token_reward_summaries
+    schema: public
+    secret_name: POSTGRES_SECRET_PRODV2
+    description: Pre-aggregated reward totals by token (incl. total_token_amount, pending_treasury)
+    from: storyhunt.token_reward_summaries_enriched
+  postgres_storyhunt.ip_reward_summaries:
+    type: postgres
+    table: storyhunt_ip_reward_summaries
+    schema: public
+    secret_name: POSTGRES_SECRET_PRODV2
+    description: Pre-aggregated reward totals by IP (incl. total_token_amount, pending_treasury)
+    from: storyhunt.ip_reward_summaries_enriched
+  postgres_storyhunt.global_reward_summaries:
+    type: postgres
+    table: storyhunt_global_reward_summaries
+    schema: public
+    secret_name: POSTGRES_SECRET_PRODV2
+    description: Global reward summary (incl. total_token_amount, pending_treasury)
+    from: storyhunt.global_reward_summaries_enriched
 dedicated_egress_ip: true
