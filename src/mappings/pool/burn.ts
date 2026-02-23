@@ -7,11 +7,7 @@ import { getSubgraphConfig, SubgraphConfig } from '../../utils/chains'
 import { ONE_BI } from '../../utils/constants'
 import {
   updatePoolDayData,
-  updatePoolHourData,
-  updateTokenDayData,
-  updateTokenHourData,
   updateStoryHuntDayData,
-  updateTokenMinuteData,
 } from '../../utils/intervalUpdates'
 
 export function handleBurn(event: BurnEvent): void {
@@ -96,13 +92,6 @@ export function handleBurnHelper(event: BurnEvent, subgraphConfig: SubgraphConfi
     }
     updateStoryHuntDayData(event, factoryAddress)
     updatePoolDayData(event)
-    updatePoolHourData(event)
-    updateTokenDayData(token0 as Token, event)
-    updateTokenDayData(token1 as Token, event)
-    updateTokenHourData(token0 as Token, event)
-    updateTokenHourData(token1 as Token, event)
-    updateTokenMinuteData(token0 as Token, event)
-    updateTokenMinuteData(token1 as Token, event)
 
     token0.save()
     token1.save()

@@ -4,14 +4,11 @@ import { Bundle, Factory, Pool, Swap, Token } from '../../types/schema'
 import { Swap as SwapEvent } from '../../types/templates/Pool/Pool'
 import { convertTokenToDecimal, loadTransaction, safeDiv } from '../../utils'
 import { getSubgraphConfig, SubgraphConfig } from '../../utils/chains'
-import { ONE_BI, SECONDS_PER_YEAR, ZERO_BD } from '../../utils/constants'
+import { ONE_BI, ZERO_BD, ZERO_BI } from '../../utils/constants'
 import {
   updatePoolDayData,
-  updatePoolHourData,
-  updateTokenDayData,
-  updateTokenHourData,
   updateStoryHuntDayData,
-  updateTokenMinuteData,
+  updateTokenMarketCap,
 } from '../../utils/intervalUpdates'
 import {
   findNativePerToken,
@@ -19,6 +16,11 @@ import {
   getTrackedAmountUSD,
   sqrtPriceX96ToTokenPrices,
 } from '../../utils/pricing'
+
+// Helper function to compute the absolute value of a BigDecimal
+function bdAbs(x: BigDecimal): BigDecimal {
+  return x.lt(ZERO_BD) ? x.times(BigDecimal.fromString('-1')) : x
+}
 
 export function handleSwap(event: SwapEvent): void {
   handleSwapHelper(event)
@@ -182,15 +184,8 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     // interval data
     const storyhuntDayData = updateStoryHuntDayData(event, factoryAddress)
     const poolDayData = updatePoolDayData(event)
-    const poolHourData = updatePoolHourData(event)
-    const token0DayData = updateTokenDayData(token0 as Token, event)
-    const token1DayData = updateTokenDayData(token1 as Token, event)
-    const token0HourData = updateTokenHourData(token0 as Token, event)
-    const token1HourData = updateTokenHourData(token1 as Token, event)
-    const token0MinuteData = updateTokenMinuteData(token0 as Token, event)
-    const token1MinuteData = updateTokenMinuteData(token1 as Token, event)
 
-    // update volume metrics
+    // update volume metrics using validated volume
     storyhuntDayData.volumeIP = storyhuntDayData.volumeIP.plus(amountTotalIPTracked)
     storyhuntDayData.volumeUSD = storyhuntDayData.volumeUSD.plus(amountTotalUSDTracked)
     storyhuntDayData.feesUSD = storyhuntDayData.feesUSD.plus(feesUSD)
@@ -200,52 +195,9 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     poolDayData.volumeToken1 = poolDayData.volumeToken1.plus(amount1Abs)
     poolDayData.feesUSD = poolDayData.feesUSD.plus(feesUSD)
 
-    poolHourData.volumeUSD = poolHourData.volumeUSD.plus(amountTotalUSDTracked)
-    poolHourData.volumeToken0 = poolHourData.volumeToken0.plus(amount0Abs)
-    poolHourData.volumeToken1 = poolHourData.volumeToken1.plus(amount1Abs)
-    poolHourData.feesUSD = poolHourData.feesUSD.plus(feesUSD)
-
-    token0DayData.volume = token0DayData.volume.plus(amount0Abs)
-    token0DayData.volumeUSD = token0DayData.volumeUSD.plus(amountTotalUSDTracked)
-    token0DayData.untrackedVolumeUSD = token0DayData.untrackedVolumeUSD.plus(amountTotalUSDTracked)
-    token0DayData.feesUSD = token0DayData.feesUSD.plus(feesUSD)
-
-    token0HourData.volume = token0HourData.volume.plus(amount0Abs)
-    token0HourData.volumeUSD = token0HourData.volumeUSD.plus(amountTotalUSDTracked)
-    token0HourData.untrackedVolumeUSD = token0HourData.untrackedVolumeUSD.plus(amountTotalUSDTracked)
-    token0HourData.feesUSD = token0HourData.feesUSD.plus(feesUSD)
-
-    token0MinuteData.volume = token0MinuteData.volume.plus(amount0Abs)
-    token0MinuteData.volumeUSD = token0MinuteData.volumeUSD.plus(amountTotalUSDTracked)
-    token0MinuteData.untrackedVolumeUSD = token0MinuteData.untrackedVolumeUSD.plus(amountTotalUSDTracked)
-    token0MinuteData.feesUSD = token0MinuteData.feesUSD.plus(feesUSD)
-
-    token1DayData.volume = token1DayData.volume.plus(amount1Abs)
-    token1DayData.volumeUSD = token1DayData.volumeUSD.plus(amountTotalUSDTracked)
-    token1DayData.untrackedVolumeUSD = token1DayData.untrackedVolumeUSD.plus(amountTotalUSDTracked)
-    token1DayData.feesUSD = token1DayData.feesUSD.plus(feesUSD)
-
-    token1HourData.volume = token1HourData.volume.plus(amount1Abs)
-    token1HourData.volumeUSD = token1HourData.volumeUSD.plus(amountTotalUSDTracked)
-    token1HourData.untrackedVolumeUSD = token1HourData.untrackedVolumeUSD.plus(amountTotalUSDTracked)
-    token1HourData.feesUSD = token1HourData.feesUSD.plus(feesUSD)
-
-    token1MinuteData.volume = token1MinuteData.volume.plus(amount1Abs)
-    token1MinuteData.volumeUSD = token1MinuteData.volumeUSD.plus(amountTotalUSDTracked)
-    token1MinuteData.untrackedVolumeUSD = token1MinuteData.untrackedVolumeUSD.plus(amountTotalUSDTracked)
-    token1MinuteData.feesUSD = token1MinuteData.feesUSD.plus(feesUSD)
-
     swap.save()
-    token0DayData.save()
-    token1DayData.save()
     storyhuntDayData.save()
     poolDayData.save()
-    poolHourData.save()
-    token0HourData.save()
-    token1HourData.save()
-    token0MinuteData.save()
-    token1MinuteData.save()
-    poolHourData.save()
     factory.save()
     pool.save()
     token0.save()
