@@ -341,7 +341,6 @@ export function handleLinked(event: Linked): void {
   is_.wipToProtocol = is_.wipToProtocol.plus(ts.wipToProtocol)
   is_.referralWipAmount = is_.referralWipAmount.plus(ts.referralWipAmount)
   // Migrate USD values
-  is_.vestingTotalAmountUSD = is_.vestingTotalAmountUSD.plus(ts.vestingTotalAmountUSD)
   is_.vestingClaimedAmountUSD = is_.vestingClaimedAmountUSD.plus(ts.vestingClaimedAmountUSD)
   is_.tokenCollectedUSD = is_.tokenCollectedUSD.plus(ts.tokenCollectedUSD)
   is_.tokenToIpTreasuryUSD = is_.tokenToIpTreasuryUSD.plus(ts.tokenToIpTreasuryUSD)

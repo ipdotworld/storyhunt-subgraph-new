@@ -25,7 +25,6 @@ export function getOrCreateTokenSummary(token: string): TokenRewardSummary {
     s.lastUpdatedBlock = ZERO
     s.lastUpdatedTimestamp = ZERO
     // USD fields
-    s.vestingTotalAmountUSD = ZERO_BD
     s.vestingClaimedAmountUSD = ZERO_BD
     s.tokenCollectedUSD = ZERO_BD
     s.tokenToIpTreasuryUSD = ZERO_BD
@@ -65,7 +64,6 @@ export function getOrCreateIpSummary(ipaId: string): IpRewardSummary {
     s.lastUpdatedBlock = ZERO
     s.lastUpdatedTimestamp = ZERO
     // USD fields
-    s.vestingTotalAmountUSD = ZERO_BD
     s.vestingClaimedAmountUSD = ZERO_BD
     s.tokenCollectedUSD = ZERO_BD
     s.tokenToIpTreasuryUSD = ZERO_BD
@@ -102,7 +100,6 @@ export function getOrCreateGlobalSummary(): GlobalRewardSummary {
     s.lastUpdatedBlock = ZERO
     s.lastUpdatedTimestamp = ZERO
     // USD fields
-    s.vestingTotalAmountUSD = ZERO_BD
     s.vestingClaimedAmountUSD = ZERO_BD
     s.tokenCollectedUSD = ZERO_BD
     s.tokenToIpTreasuryUSD = ZERO_BD

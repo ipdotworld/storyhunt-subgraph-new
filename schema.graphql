@@ -521,7 +521,6 @@ type TokenRewardSummary @entity {
   lastUpdatedBlock: BigInt!
   lastUpdatedTimestamp: BigInt!
   # USD conversion fields
-  vestingTotalAmountUSD: BigDecimal!
   vestingClaimedAmountUSD: BigDecimal!
   tokenCollectedUSD: BigDecimal!
   tokenToIpTreasuryUSD: BigDecimal!
@@ -558,7 +557,6 @@ type IpRewardSummary @entity {
   lastUpdatedBlock: BigInt!
   lastUpdatedTimestamp: BigInt!
   # USD conversion fields
-  vestingTotalAmountUSD: BigDecimal!
   vestingClaimedAmountUSD: BigDecimal!
   tokenCollectedUSD: BigDecimal!
   tokenToIpTreasuryUSD: BigDecimal!
@@ -592,7 +590,6 @@ type GlobalRewardSummary @entity {
   lastUpdatedBlock: BigInt!
   lastUpdatedTimestamp: BigInt!
   # USD conversion fields
-  vestingTotalAmountUSD: BigDecimal!
   vestingClaimedAmountUSD: BigDecimal!
   tokenCollectedUSD: BigDecimal!
   tokenToIpTreasuryUSD: BigDecimal!
