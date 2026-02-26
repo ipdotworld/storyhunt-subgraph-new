@@ -13,7 +13,7 @@ dataSources:
     source:
       abi: Factory
       address: '0xB0d76e6C7aA7a78A00Af1A1083B4732a488700b4'
-      startBlock: 6385978
+      startBlock: 14781460
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -43,24 +43,18 @@ dataSources:
     source:
       address: '0x77475A8ca1AfE6a6dc9E82B32210709054937099'
       abi: IPWorld
-      startBlock: 7005401
+      startBlock: 14781460
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./src/mappings/ipworld.ts
       entities:
-        - TokenDeployment
-        - HarvestEvent
-        - HarvestDistributedEvent
-        - AirdropClaimEvent
-        - TreasuryFlushEvent
         - IpTokenLink
-        - LiquidityCollectedEvent
-        - PoolTokenMap
         - TokenRewardSummary
         - IpRewardSummary
         - GlobalRewardSummary
+        - WalletUgcSummary
       abis:
         - name: IPWorld
           file: ./abis/IPWorld.json
@@ -77,8 +71,6 @@ dataSources:
           handler: handleTreasuryFlushed
         - event: Linked(indexed address,indexed address)
           handler: handleLinked
-        - event: LiquidityCollected(indexed address,int24,int24,uint256,uint256)
-          handler: handleLiquidityCollected
 
   - kind: ethereum/contract
     name: IPOwnerVault
@@ -86,17 +78,13 @@ dataSources:
     source:
       address: '0x276679F9e03d2E99350d407f964b5b42A3f01c73'
       abi: IPOwnerVault
-      startBlock: 7005401
+      startBlock: 14781460
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./src/mappings/ipowner-vault.ts
       entities:
-        - ClaimEvent
-        - VestingSchedule
-        - VestingReleaseEvent
-        - EthDepositEvent
         - TokenRewardSummary
         - IpRewardSummary
         - GlobalRewardSummary

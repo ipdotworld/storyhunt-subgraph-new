@@ -7,7 +7,7 @@ import {
   NonfungiblePositionManager,
   Transfer,
 } from '../types/NonfungiblePositionManager/NonfungiblePositionManager'
-import { LMPool, Position, PositionSnapshot, Token } from '../types/schema'
+import { Position, PositionSnapshot, Token } from '../types/schema'
 import { convertTokenToDecimal, loadTransaction } from '../utils'
 import { ADDRESS_ZERO, factoryContract, ZERO_BD, ZERO_BI } from '../utils/constants'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
@@ -31,7 +31,6 @@ function getPosition(event: ethereum.Event, tokenId: BigInt): Position | null {
         position = new Position(tokenId.toString())
         // The owner gets correctly updated in the Transfer handler
         position.owner = Address.fromString(ADDRESS_ZERO)
-        position.staker = Address.fromString(ADDRESS_ZERO)
         position.pool = poolAddress.value.toHexString()
         position.token0 = positionResult.value2.toHexString()
         position.token1 = positionResult.value3.toHexString()
@@ -47,12 +46,6 @@ function getPosition(event: ethereum.Event, tokenId: BigInt): Position | null {
         position.transaction = loadTransaction(event, position.pool).id
         position.feeGrowthInside0LastX128 = positionResult.value8
         position.feeGrowthInside1LastX128 = positionResult.value9
-        position.isStaked = false
-
-        const lmPool = LMPool.load(poolAddress.value.toHexString());
-        if (lmPool !== null) {
-          position.lmPool = lmPool.id;
-        }
 
       }
     }
