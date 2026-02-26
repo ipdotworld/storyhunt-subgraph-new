@@ -521,7 +521,6 @@ type TokenRewardSummary @entity {
   airdropTokenClaimed: BigInt!
   airdropWipClaimed: BigInt!
   airdropClaimCount: BigInt!
-  ethDeposited: BigInt!
   lastUpdatedBlock: BigInt!
   lastUpdatedTimestamp: BigInt!
   # USD conversion fields
@@ -539,7 +538,6 @@ type TokenRewardSummary @entity {
   treasuryFlushedAmountUSD: BigDecimal!
   airdropTokenClaimedUSD: BigDecimal!
   airdropWipClaimedUSD: BigDecimal!
-  ethDepositedUSD: BigDecimal!
   # Aggregate USD fields
   totalRewardsUSD: BigDecimal!
   ipOwnerRewardsUSD: BigDecimal!
@@ -567,7 +565,6 @@ type IpRewardSummary @entity {
   airdropTokenClaimed: BigInt!
   airdropWipClaimed: BigInt!
   airdropClaimCount: BigInt!
-  ethDeposited: BigInt!
   lastUpdatedBlock: BigInt!
   lastUpdatedTimestamp: BigInt!
   # USD conversion fields
@@ -585,7 +582,6 @@ type IpRewardSummary @entity {
   treasuryFlushedAmountUSD: BigDecimal!
   airdropTokenClaimedUSD: BigDecimal!
   airdropWipClaimedUSD: BigDecimal!
-  ethDepositedUSD: BigDecimal!
   # Aggregate USD fields
   totalRewardsUSD: BigDecimal!
   ipOwnerRewardsUSD: BigDecimal!
@@ -612,7 +608,6 @@ type GlobalRewardSummary @entity {
   airdropTokenClaimed: BigInt!
   airdropWipClaimed: BigInt!
   airdropClaimCount: BigInt!
-  ethDeposited: BigInt!
   lastUpdatedBlock: BigInt!
   lastUpdatedTimestamp: BigInt!
   # USD conversion fields
@@ -630,7 +625,6 @@ type GlobalRewardSummary @entity {
   treasuryFlushedAmountUSD: BigDecimal!
   airdropTokenClaimedUSD: BigDecimal!
   airdropWipClaimedUSD: BigDecimal!
-  ethDepositedUSD: BigDecimal!
   # Aggregate USD fields
   totalRewardsUSD: BigDecimal!
   ipOwnerRewardsUSD: BigDecimal!

@@ -98,8 +98,6 @@ dataSources:
           handler: handleVestingScheduleCreated
         - event: ReleasedVested(indexed address,uint256)
           handler: handleReleasedVested
-        - event: EthDeposited(indexed address,uint256)
-          handler: handleEthDeposited
 
 templates:
   - kind: ethereum/contract

@@ -1,4 +1,4 @@
-import { VestedTokensAndEthClaimed, VestingScheduleCreated, ReleasedVested, EthDeposited } from '../types/IPOwnerVault/IPOwnerVault'
+import { VestedTokensAndEthClaimed, VestingScheduleCreated, ReleasedVested } from '../types/IPOwnerVault/IPOwnerVault'
 import { getOrCreateTokenSummary, getOrCreateIpSummary, getOrCreateGlobalSummary, recalcTotalRewardsUSD, recalcIpOwnerRewardsUSD } from './reward-summary'
 import { wipToUSD, tokenToUSD } from '../utils/usdConversion'
 
@@ -22,7 +22,6 @@ export function handleVestedTokensAndEthClaimed(event: VestedTokensAndEthClaimed
     ts.tokenCollectedUSD, ts.tokenToIpTreasuryUSD, ts.tokenToAirdropUSD,
     ts.wipCollectedUSD, ts.treasuryFlushedAmountUSD,
     ts.airdropTokenClaimedUSD, ts.airdropWipClaimedUSD,
-    ts.ethDepositedUSD,
   )
   ts.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
     ts.vestingClaimedAmountUSD, ts.vestingClaimedEthAmountUSD,
@@ -43,7 +42,6 @@ export function handleVestedTokensAndEthClaimed(event: VestedTokensAndEthClaimed
       is_.tokenCollectedUSD, is_.tokenToIpTreasuryUSD, is_.tokenToAirdropUSD,
       is_.wipCollectedUSD, is_.treasuryFlushedAmountUSD,
       is_.airdropTokenClaimedUSD, is_.airdropWipClaimedUSD,
-      is_.ethDepositedUSD,
     )
     is_.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
       is_.vestingClaimedAmountUSD, is_.vestingClaimedEthAmountUSD,
@@ -64,7 +62,6 @@ export function handleVestedTokensAndEthClaimed(event: VestedTokensAndEthClaimed
     gs.tokenCollectedUSD, gs.tokenToIpTreasuryUSD, gs.tokenToAirdropUSD,
     gs.wipCollectedUSD, gs.treasuryFlushedAmountUSD,
     gs.airdropTokenClaimedUSD, gs.airdropWipClaimedUSD,
-    gs.ethDepositedUSD,
   )
   gs.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
     gs.vestingClaimedAmountUSD, gs.vestingClaimedEthAmountUSD,
@@ -88,7 +85,6 @@ export function handleVestingScheduleCreated(event: VestingScheduleCreated): voi
     ts.tokenCollectedUSD, ts.tokenToIpTreasuryUSD, ts.tokenToAirdropUSD,
     ts.wipCollectedUSD, ts.treasuryFlushedAmountUSD,
     ts.airdropTokenClaimedUSD, ts.airdropWipClaimedUSD,
-    ts.ethDepositedUSD,
   )
   ts.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
     ts.vestingClaimedAmountUSD, ts.vestingClaimedEthAmountUSD,
@@ -107,7 +103,6 @@ export function handleVestingScheduleCreated(event: VestingScheduleCreated): voi
       is_.tokenCollectedUSD, is_.tokenToIpTreasuryUSD, is_.tokenToAirdropUSD,
       is_.wipCollectedUSD, is_.treasuryFlushedAmountUSD,
       is_.airdropTokenClaimedUSD, is_.airdropWipClaimedUSD,
-      is_.ethDepositedUSD,
     )
     is_.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
       is_.vestingClaimedAmountUSD, is_.vestingClaimedEthAmountUSD,
@@ -126,7 +121,6 @@ export function handleVestingScheduleCreated(event: VestingScheduleCreated): voi
     gs.tokenCollectedUSD, gs.tokenToIpTreasuryUSD, gs.tokenToAirdropUSD,
     gs.wipCollectedUSD, gs.treasuryFlushedAmountUSD,
     gs.airdropTokenClaimedUSD, gs.airdropWipClaimedUSD,
-    gs.ethDepositedUSD,
   )
   gs.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
     gs.vestingClaimedAmountUSD, gs.vestingClaimedEthAmountUSD,
@@ -150,7 +144,6 @@ export function handleReleasedVested(event: ReleasedVested): void {
     ts.tokenCollectedUSD, ts.tokenToIpTreasuryUSD, ts.tokenToAirdropUSD,
     ts.wipCollectedUSD, ts.treasuryFlushedAmountUSD,
     ts.airdropTokenClaimedUSD, ts.airdropWipClaimedUSD,
-    ts.ethDepositedUSD,
   )
   ts.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
     ts.vestingClaimedAmountUSD, ts.vestingClaimedEthAmountUSD,
@@ -169,7 +162,6 @@ export function handleReleasedVested(event: ReleasedVested): void {
       is_.tokenCollectedUSD, is_.tokenToIpTreasuryUSD, is_.tokenToAirdropUSD,
       is_.wipCollectedUSD, is_.treasuryFlushedAmountUSD,
       is_.airdropTokenClaimedUSD, is_.airdropWipClaimedUSD,
-      is_.ethDepositedUSD,
     )
     is_.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
       is_.vestingClaimedAmountUSD, is_.vestingClaimedEthAmountUSD,
@@ -188,7 +180,6 @@ export function handleReleasedVested(event: ReleasedVested): void {
     gs.tokenCollectedUSD, gs.tokenToIpTreasuryUSD, gs.tokenToAirdropUSD,
     gs.wipCollectedUSD, gs.treasuryFlushedAmountUSD,
     gs.airdropTokenClaimedUSD, gs.airdropWipClaimedUSD,
-    gs.ethDepositedUSD,
   )
   gs.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
     gs.vestingClaimedAmountUSD, gs.vestingClaimedEthAmountUSD,
@@ -199,64 +190,3 @@ export function handleReleasedVested(event: ReleasedVested): void {
   gs.save()
 }
 
-export function handleEthDeposited(event: EthDeposited): void {
-  const token = event.params.token.toHexString()
-
-  const ethDepositedUSDDelta = wipToUSD(event.params.amount)
-
-  const ts = getOrCreateTokenSummary(token)
-  ts.ethDeposited = ts.ethDeposited.plus(event.params.amount)
-  ts.ethDepositedUSD = ts.ethDepositedUSD.plus(ethDepositedUSDDelta)
-  ts.totalRewardsUSD = recalcTotalRewardsUSD(
-    ts.vestingClaimedAmountUSD, ts.vestingClaimedEthAmountUSD,
-    ts.tokenCollectedUSD, ts.tokenToIpTreasuryUSD, ts.tokenToAirdropUSD,
-    ts.wipCollectedUSD, ts.treasuryFlushedAmountUSD,
-    ts.airdropTokenClaimedUSD, ts.airdropWipClaimedUSD,
-    ts.ethDepositedUSD,
-  )
-  ts.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
-    ts.vestingClaimedAmountUSD, ts.vestingClaimedEthAmountUSD,
-    ts.wipToIpOwnerUSD, ts.tokenToIpTreasuryUSD,
-  )
-  ts.lastUpdatedBlock = event.block.number
-  ts.lastUpdatedTimestamp = event.block.timestamp
-  ts.save()
-
-  if (ts.ipaId !== null) {
-    const is_ = getOrCreateIpSummary(ts.ipaId!)
-    is_.ethDeposited = is_.ethDeposited.plus(event.params.amount)
-    is_.ethDepositedUSD = is_.ethDepositedUSD.plus(ethDepositedUSDDelta)
-    is_.totalRewardsUSD = recalcTotalRewardsUSD(
-      is_.vestingClaimedAmountUSD, is_.vestingClaimedEthAmountUSD,
-      is_.tokenCollectedUSD, is_.tokenToIpTreasuryUSD, is_.tokenToAirdropUSD,
-      is_.wipCollectedUSD, is_.treasuryFlushedAmountUSD,
-      is_.airdropTokenClaimedUSD, is_.airdropWipClaimedUSD,
-      is_.ethDepositedUSD,
-    )
-    is_.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
-      is_.vestingClaimedAmountUSD, is_.vestingClaimedEthAmountUSD,
-      is_.wipToIpOwnerUSD, is_.tokenToIpTreasuryUSD,
-    )
-    is_.lastUpdatedBlock = event.block.number
-    is_.lastUpdatedTimestamp = event.block.timestamp
-    is_.save()
-  }
-
-  const gs = getOrCreateGlobalSummary()
-  gs.ethDeposited = gs.ethDeposited.plus(event.params.amount)
-  gs.ethDepositedUSD = gs.ethDepositedUSD.plus(ethDepositedUSDDelta)
-  gs.totalRewardsUSD = recalcTotalRewardsUSD(
-    gs.vestingClaimedAmountUSD, gs.vestingClaimedEthAmountUSD,
-    gs.tokenCollectedUSD, gs.tokenToIpTreasuryUSD, gs.tokenToAirdropUSD,
-    gs.wipCollectedUSD, gs.treasuryFlushedAmountUSD,
-    gs.airdropTokenClaimedUSD, gs.airdropWipClaimedUSD,
-    gs.ethDepositedUSD,
-  )
-  gs.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
-    gs.vestingClaimedAmountUSD, gs.vestingClaimedEthAmountUSD,
-    gs.wipToIpOwnerUSD, gs.tokenToIpTreasuryUSD,
-  )
-  gs.lastUpdatedBlock = event.block.number
-  gs.lastUpdatedTimestamp = event.block.timestamp
-  gs.save()
-}

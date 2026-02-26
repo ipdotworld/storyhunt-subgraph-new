@@ -51,7 +51,6 @@ export function handleHarvest(event: Harvest): void {
     ts.tokenCollectedUSD, ts.tokenToIpTreasuryUSD, ts.tokenToAirdropUSD,
     ts.wipCollectedUSD, ts.treasuryFlushedAmountUSD,
     ts.airdropTokenClaimedUSD, ts.airdropWipClaimedUSD,
-    ts.ethDepositedUSD,
   )
   ts.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
     ts.vestingClaimedAmountUSD, ts.vestingClaimedEthAmountUSD,
@@ -77,7 +76,6 @@ export function handleHarvest(event: Harvest): void {
       is_.tokenCollectedUSD, is_.tokenToIpTreasuryUSD, is_.tokenToAirdropUSD,
       is_.wipCollectedUSD, is_.treasuryFlushedAmountUSD,
       is_.airdropTokenClaimedUSD, is_.airdropWipClaimedUSD,
-      is_.ethDepositedUSD,
     )
     is_.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
       is_.vestingClaimedAmountUSD, is_.vestingClaimedEthAmountUSD,
@@ -103,7 +101,6 @@ export function handleHarvest(event: Harvest): void {
     gs.tokenCollectedUSD, gs.tokenToIpTreasuryUSD, gs.tokenToAirdropUSD,
     gs.wipCollectedUSD, gs.treasuryFlushedAmountUSD,
     gs.airdropTokenClaimedUSD, gs.airdropWipClaimedUSD,
-    gs.ethDepositedUSD,
   )
   gs.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
     gs.vestingClaimedAmountUSD, gs.vestingClaimedEthAmountUSD,
@@ -155,7 +152,6 @@ export function handleHarvestDistributed(event: HarvestDistributed): void {
     ts.tokenCollectedUSD, ts.tokenToIpTreasuryUSD, ts.tokenToAirdropUSD,
     ts.wipCollectedUSD, ts.treasuryFlushedAmountUSD,
     ts.airdropTokenClaimedUSD, ts.airdropWipClaimedUSD,
-    ts.ethDepositedUSD,
   )
   ts.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
     ts.vestingClaimedAmountUSD, ts.vestingClaimedEthAmountUSD,
@@ -189,7 +185,6 @@ export function handleHarvestDistributed(event: HarvestDistributed): void {
       is_.tokenCollectedUSD, is_.tokenToIpTreasuryUSD, is_.tokenToAirdropUSD,
       is_.wipCollectedUSD, is_.treasuryFlushedAmountUSD,
       is_.airdropTokenClaimedUSD, is_.airdropWipClaimedUSD,
-      is_.ethDepositedUSD,
     )
     is_.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
       is_.vestingClaimedAmountUSD, is_.vestingClaimedEthAmountUSD,
@@ -223,7 +218,6 @@ export function handleHarvestDistributed(event: HarvestDistributed): void {
     gs.tokenCollectedUSD, gs.tokenToIpTreasuryUSD, gs.tokenToAirdropUSD,
     gs.wipCollectedUSD, gs.treasuryFlushedAmountUSD,
     gs.airdropTokenClaimedUSD, gs.airdropWipClaimedUSD,
-    gs.ethDepositedUSD,
   )
   gs.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
     gs.vestingClaimedAmountUSD, gs.vestingClaimedEthAmountUSD,
@@ -251,7 +245,6 @@ export function handleAirdropClaimed(event: AirdropClaimed): void {
     ts.tokenCollectedUSD, ts.tokenToIpTreasuryUSD, ts.tokenToAirdropUSD,
     ts.wipCollectedUSD, ts.treasuryFlushedAmountUSD,
     ts.airdropTokenClaimedUSD, ts.airdropWipClaimedUSD,
-    ts.ethDepositedUSD,
   )
   ts.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
     ts.vestingClaimedAmountUSD, ts.vestingClaimedEthAmountUSD,
@@ -273,7 +266,6 @@ export function handleAirdropClaimed(event: AirdropClaimed): void {
       is_.tokenCollectedUSD, is_.tokenToIpTreasuryUSD, is_.tokenToAirdropUSD,
       is_.wipCollectedUSD, is_.treasuryFlushedAmountUSD,
       is_.airdropTokenClaimedUSD, is_.airdropWipClaimedUSD,
-      is_.ethDepositedUSD,
     )
     is_.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
       is_.vestingClaimedAmountUSD, is_.vestingClaimedEthAmountUSD,
@@ -295,7 +287,6 @@ export function handleAirdropClaimed(event: AirdropClaimed): void {
     gs.tokenCollectedUSD, gs.tokenToIpTreasuryUSD, gs.tokenToAirdropUSD,
     gs.wipCollectedUSD, gs.treasuryFlushedAmountUSD,
     gs.airdropTokenClaimedUSD, gs.airdropWipClaimedUSD,
-    gs.ethDepositedUSD,
   )
   gs.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
     gs.vestingClaimedAmountUSD, gs.vestingClaimedEthAmountUSD,
@@ -319,7 +310,6 @@ export function handleTreasuryFlushed(event: TreasuryFlushed): void {
     ts.tokenCollectedUSD, ts.tokenToIpTreasuryUSD, ts.tokenToAirdropUSD,
     ts.wipCollectedUSD, ts.treasuryFlushedAmountUSD,
     ts.airdropTokenClaimedUSD, ts.airdropWipClaimedUSD,
-    ts.ethDepositedUSD,
   )
   ts.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
     ts.vestingClaimedAmountUSD, ts.vestingClaimedEthAmountUSD,
@@ -338,7 +328,6 @@ export function handleTreasuryFlushed(event: TreasuryFlushed): void {
       is_.tokenCollectedUSD, is_.tokenToIpTreasuryUSD, is_.tokenToAirdropUSD,
       is_.wipCollectedUSD, is_.treasuryFlushedAmountUSD,
       is_.airdropTokenClaimedUSD, is_.airdropWipClaimedUSD,
-      is_.ethDepositedUSD,
     )
     is_.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
       is_.vestingClaimedAmountUSD, is_.vestingClaimedEthAmountUSD,
@@ -357,7 +346,6 @@ export function handleTreasuryFlushed(event: TreasuryFlushed): void {
     gs.tokenCollectedUSD, gs.tokenToIpTreasuryUSD, gs.tokenToAirdropUSD,
     gs.wipCollectedUSD, gs.treasuryFlushedAmountUSD,
     gs.airdropTokenClaimedUSD, gs.airdropWipClaimedUSD,
-    gs.ethDepositedUSD,
   )
   gs.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
     gs.vestingClaimedAmountUSD, gs.vestingClaimedEthAmountUSD,
@@ -409,7 +397,6 @@ export function handleLinked(event: Linked): void {
   is_.airdropTokenClaimed = is_.airdropTokenClaimed.plus(ts.airdropTokenClaimed)
   is_.airdropWipClaimed = is_.airdropWipClaimed.plus(ts.airdropWipClaimed)
   is_.airdropClaimCount = is_.airdropClaimCount.plus(ts.airdropClaimCount)
-  is_.ethDeposited = is_.ethDeposited.plus(ts.ethDeposited)
   // Migrate USD values
   is_.vestingTotalAmountUSD = is_.vestingTotalAmountUSD.plus(ts.vestingTotalAmountUSD)
   is_.vestingClaimedAmountUSD = is_.vestingClaimedAmountUSD.plus(ts.vestingClaimedAmountUSD)
@@ -425,13 +412,11 @@ export function handleLinked(event: Linked): void {
   is_.treasuryFlushedAmountUSD = is_.treasuryFlushedAmountUSD.plus(ts.treasuryFlushedAmountUSD)
   is_.airdropTokenClaimedUSD = is_.airdropTokenClaimedUSD.plus(ts.airdropTokenClaimedUSD)
   is_.airdropWipClaimedUSD = is_.airdropWipClaimedUSD.plus(ts.airdropWipClaimedUSD)
-  is_.ethDepositedUSD = is_.ethDepositedUSD.plus(ts.ethDepositedUSD)
   is_.totalRewardsUSD = recalcTotalRewardsUSD(
     is_.vestingClaimedAmountUSD, is_.vestingClaimedEthAmountUSD,
     is_.tokenCollectedUSD, is_.tokenToIpTreasuryUSD, is_.tokenToAirdropUSD,
     is_.wipCollectedUSD, is_.treasuryFlushedAmountUSD,
     is_.airdropTokenClaimedUSD, is_.airdropWipClaimedUSD,
-    is_.ethDepositedUSD,
   )
   is_.ipOwnerRewardsUSD = recalcIpOwnerRewardsUSD(
     is_.vestingClaimedAmountUSD, is_.vestingClaimedEthAmountUSD,

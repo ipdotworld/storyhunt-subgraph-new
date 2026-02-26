@@ -25,7 +25,6 @@ export function getOrCreateTokenSummary(token: string): TokenRewardSummary {
     s.airdropTokenClaimed = ZERO
     s.airdropWipClaimed = ZERO
     s.airdropClaimCount = ZERO
-    s.ethDeposited = ZERO
     s.lastUpdatedBlock = ZERO
     s.lastUpdatedTimestamp = ZERO
     // USD fields
@@ -43,7 +42,6 @@ export function getOrCreateTokenSummary(token: string): TokenRewardSummary {
     s.treasuryFlushedAmountUSD = ZERO_BD
     s.airdropTokenClaimedUSD = ZERO_BD
     s.airdropWipClaimedUSD = ZERO_BD
-    s.ethDepositedUSD = ZERO_BD
     s.totalRewardsUSD = ZERO_BD
     s.ipOwnerRewardsUSD = ZERO_BD
     // Referral placeholders
@@ -74,7 +72,6 @@ export function getOrCreateIpSummary(ipaId: string): IpRewardSummary {
     s.airdropTokenClaimed = ZERO
     s.airdropWipClaimed = ZERO
     s.airdropClaimCount = ZERO
-    s.ethDeposited = ZERO
     s.lastUpdatedBlock = ZERO
     s.lastUpdatedTimestamp = ZERO
     // USD fields
@@ -92,7 +89,6 @@ export function getOrCreateIpSummary(ipaId: string): IpRewardSummary {
     s.treasuryFlushedAmountUSD = ZERO_BD
     s.airdropTokenClaimedUSD = ZERO_BD
     s.airdropWipClaimedUSD = ZERO_BD
-    s.ethDepositedUSD = ZERO_BD
     s.totalRewardsUSD = ZERO_BD
     s.ipOwnerRewardsUSD = ZERO_BD
     // Referral placeholders
@@ -122,7 +118,6 @@ export function getOrCreateGlobalSummary(): GlobalRewardSummary {
     s.airdropTokenClaimed = ZERO
     s.airdropWipClaimed = ZERO
     s.airdropClaimCount = ZERO
-    s.ethDeposited = ZERO
     s.lastUpdatedBlock = ZERO
     s.lastUpdatedTimestamp = ZERO
     // USD fields
@@ -140,7 +135,6 @@ export function getOrCreateGlobalSummary(): GlobalRewardSummary {
     s.treasuryFlushedAmountUSD = ZERO_BD
     s.airdropTokenClaimedUSD = ZERO_BD
     s.airdropWipClaimedUSD = ZERO_BD
-    s.ethDepositedUSD = ZERO_BD
     s.totalRewardsUSD = ZERO_BD
     s.ipOwnerRewardsUSD = ZERO_BD
   }
@@ -157,7 +151,6 @@ export function recalcTotalRewardsUSD(
   treasuryFlushedAmountUSD: BigDecimal,
   airdropTokenClaimedUSD: BigDecimal,
   airdropWipClaimedUSD: BigDecimal,
-  ethDepositedUSD: BigDecimal,
 ): BigDecimal {
   return vestingClaimedAmountUSD
     .plus(vestingClaimedEthAmountUSD)
@@ -168,7 +161,6 @@ export function recalcTotalRewardsUSD(
     .plus(treasuryFlushedAmountUSD)
     .plus(airdropTokenClaimedUSD)
     .plus(airdropWipClaimedUSD)
-    .plus(ethDepositedUSD)
 }
 
 export function recalcIpOwnerRewardsUSD(
