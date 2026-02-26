@@ -15,19 +15,6 @@
     "anonymous": false,
     "inputs": [
       {"indexed": true, "internalType": "address", "name": "token", "type": "address"},
-      {"indexed": false, "internalType": "uint256", "name": "wethCollected", "type": "uint256"},
-      {"indexed": false, "internalType": "uint256", "name": "tokensCollected", "type": "uint256"},
-      {"indexed": false, "internalType": "uint256", "name": "tokensBurned", "type": "uint256"},
-      {"indexed": false, "internalType": "uint256", "name": "wethToBuyback", "type": "uint256"},
-      {"indexed": false, "internalType": "uint256", "name": "wethToIpOwner", "type": "uint256"}
-    ],
-    "name": "Harvest",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {"indexed": true, "internalType": "address", "name": "token", "type": "address"},
       {"indexed": false, "internalType": "uint256", "name": "tokenCollected", "type": "uint256"},
       {"indexed": false, "internalType": "uint256", "name": "tokenToIpTreasury", "type": "uint256"},
       {"indexed": false, "internalType": "uint256", "name": "tokenToUgc", "type": "uint256"},
@@ -80,5 +67,23 @@
     ],
     "name": "LiquidityCollected",
     "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {"indexed": true, "internalType": "address", "name": "token", "type": "address"},
+      {"indexed": true, "internalType": "address", "name": "ipaId", "type": "address"},
+      {"indexed": true, "internalType": "address", "name": "referrer", "type": "address"},
+      {"indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256"}
+    ],
+    "name": "ReferralFeePaid",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "referralShare",
+    "outputs": [{"internalType": "uint24", "name": "", "type": "uint24"}],
+    "stateMutability": "view",
+    "type": "function"
   }
 ]

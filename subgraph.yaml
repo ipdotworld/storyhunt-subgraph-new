@@ -61,8 +61,6 @@ dataSources:
       eventHandlers:
         - event: TokenDeployed(indexed address,indexed address,indexed address,int24[],uint256[])
           handler: handleTokenDeployed
-        - event: Harvest(indexed address,uint256,uint256,uint256,uint256,uint256)
-          handler: handleHarvest
         - event: HarvestDistributed(indexed address,uint256,uint256,uint256,uint256,uint256,uint256,uint256)
           handler: handleHarvestDistributed
         - event: AirdropClaimed(indexed address,indexed address,uint256,uint256)
@@ -71,6 +69,8 @@ dataSources:
           handler: handleTreasuryFlushed
         - event: Linked(indexed address,indexed address)
           handler: handleLinked
+        - event: ReferralFeePaid(indexed address,indexed address,indexed address,uint256)
+          handler: handleReferralFeePaid
 
   - kind: ethereum/contract
     name: IPOwnerVault

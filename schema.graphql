@@ -507,7 +507,8 @@ type TokenRewardSummary @entity {
   ipaId: String
   vestingTotalAmount: BigInt!
   vestingClaimedAmount: BigInt!
-  vestingClaimedEthAmount: BigInt!
+  vestingStart: BigInt!
+  vestingEnd: BigInt!
   harvestCount: BigInt!
   tokenCollected: BigInt!
   tokenToIpTreasury: BigInt!
@@ -517,16 +518,11 @@ type TokenRewardSummary @entity {
   wipToBuyback: BigInt!
   wipToAirdrop: BigInt!
   wipToProtocol: BigInt!
-  treasuryFlushedAmount: BigInt!
-  airdropTokenClaimed: BigInt!
-  airdropWipClaimed: BigInt!
-  airdropClaimCount: BigInt!
   lastUpdatedBlock: BigInt!
   lastUpdatedTimestamp: BigInt!
   # USD conversion fields
   vestingTotalAmountUSD: BigDecimal!
   vestingClaimedAmountUSD: BigDecimal!
-  vestingClaimedEthAmountUSD: BigDecimal!
   tokenCollectedUSD: BigDecimal!
   tokenToIpTreasuryUSD: BigDecimal!
   tokenToAirdropUSD: BigDecimal!
@@ -535,13 +531,10 @@ type TokenRewardSummary @entity {
   wipToBuybackUSD: BigDecimal!
   wipToAirdropUSD: BigDecimal!
   wipToProtocolUSD: BigDecimal!
-  treasuryFlushedAmountUSD: BigDecimal!
-  airdropTokenClaimedUSD: BigDecimal!
-  airdropWipClaimedUSD: BigDecimal!
   # Aggregate USD fields
   totalRewardsUSD: BigDecimal!
   ipOwnerRewardsUSD: BigDecimal!
-  # Referral placeholder fields
+  # Referral fields
   referralWipAmount: BigInt!
   referralWipAmountUSD: BigDecimal!
 }
@@ -551,7 +544,8 @@ type IpRewardSummary @entity {
   tokenCount: BigInt!
   vestingTotalAmount: BigInt!
   vestingClaimedAmount: BigInt!
-  vestingClaimedEthAmount: BigInt!
+  vestingStart: BigInt!
+  vestingEnd: BigInt!
   harvestCount: BigInt!
   tokenCollected: BigInt!
   tokenToIpTreasury: BigInt!
@@ -561,16 +555,11 @@ type IpRewardSummary @entity {
   wipToBuyback: BigInt!
   wipToAirdrop: BigInt!
   wipToProtocol: BigInt!
-  treasuryFlushedAmount: BigInt!
-  airdropTokenClaimed: BigInt!
-  airdropWipClaimed: BigInt!
-  airdropClaimCount: BigInt!
   lastUpdatedBlock: BigInt!
   lastUpdatedTimestamp: BigInt!
   # USD conversion fields
   vestingTotalAmountUSD: BigDecimal!
   vestingClaimedAmountUSD: BigDecimal!
-  vestingClaimedEthAmountUSD: BigDecimal!
   tokenCollectedUSD: BigDecimal!
   tokenToIpTreasuryUSD: BigDecimal!
   tokenToAirdropUSD: BigDecimal!
@@ -579,13 +568,10 @@ type IpRewardSummary @entity {
   wipToBuybackUSD: BigDecimal!
   wipToAirdropUSD: BigDecimal!
   wipToProtocolUSD: BigDecimal!
-  treasuryFlushedAmountUSD: BigDecimal!
-  airdropTokenClaimedUSD: BigDecimal!
-  airdropWipClaimedUSD: BigDecimal!
   # Aggregate USD fields
   totalRewardsUSD: BigDecimal!
   ipOwnerRewardsUSD: BigDecimal!
-  # Referral placeholder fields
+  # Referral fields
   referralWipAmount: BigInt!
   referralWipAmountUSD: BigDecimal!
 }
@@ -594,7 +580,6 @@ type GlobalRewardSummary @entity {
   id: ID!
   vestingTotalAmount: BigInt!
   vestingClaimedAmount: BigInt!
-  vestingClaimedEthAmount: BigInt!
   harvestCount: BigInt!
   tokenCollected: BigInt!
   tokenToIpTreasury: BigInt!
@@ -604,16 +589,11 @@ type GlobalRewardSummary @entity {
   wipToBuyback: BigInt!
   wipToAirdrop: BigInt!
   wipToProtocol: BigInt!
-  treasuryFlushedAmount: BigInt!
-  airdropTokenClaimed: BigInt!
-  airdropWipClaimed: BigInt!
-  airdropClaimCount: BigInt!
   lastUpdatedBlock: BigInt!
   lastUpdatedTimestamp: BigInt!
   # USD conversion fields
   vestingTotalAmountUSD: BigDecimal!
   vestingClaimedAmountUSD: BigDecimal!
-  vestingClaimedEthAmountUSD: BigDecimal!
   tokenCollectedUSD: BigDecimal!
   tokenToIpTreasuryUSD: BigDecimal!
   tokenToAirdropUSD: BigDecimal!
@@ -622,12 +602,12 @@ type GlobalRewardSummary @entity {
   wipToBuybackUSD: BigDecimal!
   wipToAirdropUSD: BigDecimal!
   wipToProtocolUSD: BigDecimal!
-  treasuryFlushedAmountUSD: BigDecimal!
-  airdropTokenClaimedUSD: BigDecimal!
-  airdropWipClaimedUSD: BigDecimal!
   # Aggregate USD fields
   totalRewardsUSD: BigDecimal!
   ipOwnerRewardsUSD: BigDecimal!
+  # Referral fields
+  referralWipAmount: BigInt!
+  referralWipAmountUSD: BigDecimal!
 }
 
 type WalletUgcSummary @entity {

@@ -1,5 +1,5 @@
 import { BigInt, BigDecimal } from '@graphprotocol/graph-ts'
-import { TokenRewardSummary, IpRewardSummary, GlobalRewardSummary } from '../types/schema'
+import { TokenRewardSummary, IpRewardSummary, GlobalRewardSummary, WalletUgcSummary } from '../types/schema'
 
 const ZERO = BigInt.fromI32(0)
 const ZERO_BD = BigDecimal.fromString('0')
@@ -11,7 +11,8 @@ export function getOrCreateTokenSummary(token: string): TokenRewardSummary {
     s.ipaId = null
     s.vestingTotalAmount = ZERO
     s.vestingClaimedAmount = ZERO
-    s.vestingClaimedEthAmount = ZERO
+    s.vestingStart = ZERO
+    s.vestingEnd = ZERO
     s.harvestCount = ZERO
     s.tokenCollected = ZERO
     s.tokenToIpTreasury = ZERO
@@ -21,16 +22,11 @@ export function getOrCreateTokenSummary(token: string): TokenRewardSummary {
     s.wipToBuyback = ZERO
     s.wipToAirdrop = ZERO
     s.wipToProtocol = ZERO
-    s.treasuryFlushedAmount = ZERO
-    s.airdropTokenClaimed = ZERO
-    s.airdropWipClaimed = ZERO
-    s.airdropClaimCount = ZERO
     s.lastUpdatedBlock = ZERO
     s.lastUpdatedTimestamp = ZERO
     // USD fields
     s.vestingTotalAmountUSD = ZERO_BD
     s.vestingClaimedAmountUSD = ZERO_BD
-    s.vestingClaimedEthAmountUSD = ZERO_BD
     s.tokenCollectedUSD = ZERO_BD
     s.tokenToIpTreasuryUSD = ZERO_BD
     s.tokenToAirdropUSD = ZERO_BD
@@ -39,12 +35,9 @@ export function getOrCreateTokenSummary(token: string): TokenRewardSummary {
     s.wipToBuybackUSD = ZERO_BD
     s.wipToAirdropUSD = ZERO_BD
     s.wipToProtocolUSD = ZERO_BD
-    s.treasuryFlushedAmountUSD = ZERO_BD
-    s.airdropTokenClaimedUSD = ZERO_BD
-    s.airdropWipClaimedUSD = ZERO_BD
     s.totalRewardsUSD = ZERO_BD
     s.ipOwnerRewardsUSD = ZERO_BD
-    // Referral placeholders
+    // Referral fields
     s.referralWipAmount = ZERO
     s.referralWipAmountUSD = ZERO_BD
   }
@@ -58,7 +51,8 @@ export function getOrCreateIpSummary(ipaId: string): IpRewardSummary {
     s.tokenCount = ZERO
     s.vestingTotalAmount = ZERO
     s.vestingClaimedAmount = ZERO
-    s.vestingClaimedEthAmount = ZERO
+    s.vestingStart = ZERO
+    s.vestingEnd = ZERO
     s.harvestCount = ZERO
     s.tokenCollected = ZERO
     s.tokenToIpTreasury = ZERO
@@ -68,16 +62,11 @@ export function getOrCreateIpSummary(ipaId: string): IpRewardSummary {
     s.wipToBuyback = ZERO
     s.wipToAirdrop = ZERO
     s.wipToProtocol = ZERO
-    s.treasuryFlushedAmount = ZERO
-    s.airdropTokenClaimed = ZERO
-    s.airdropWipClaimed = ZERO
-    s.airdropClaimCount = ZERO
     s.lastUpdatedBlock = ZERO
     s.lastUpdatedTimestamp = ZERO
     // USD fields
     s.vestingTotalAmountUSD = ZERO_BD
     s.vestingClaimedAmountUSD = ZERO_BD
-    s.vestingClaimedEthAmountUSD = ZERO_BD
     s.tokenCollectedUSD = ZERO_BD
     s.tokenToIpTreasuryUSD = ZERO_BD
     s.tokenToAirdropUSD = ZERO_BD
@@ -86,12 +75,9 @@ export function getOrCreateIpSummary(ipaId: string): IpRewardSummary {
     s.wipToBuybackUSD = ZERO_BD
     s.wipToAirdropUSD = ZERO_BD
     s.wipToProtocolUSD = ZERO_BD
-    s.treasuryFlushedAmountUSD = ZERO_BD
-    s.airdropTokenClaimedUSD = ZERO_BD
-    s.airdropWipClaimedUSD = ZERO_BD
     s.totalRewardsUSD = ZERO_BD
     s.ipOwnerRewardsUSD = ZERO_BD
-    // Referral placeholders
+    // Referral fields
     s.referralWipAmount = ZERO
     s.referralWipAmountUSD = ZERO_BD
   }
@@ -104,7 +90,6 @@ export function getOrCreateGlobalSummary(): GlobalRewardSummary {
     s = new GlobalRewardSummary('global')
     s.vestingTotalAmount = ZERO
     s.vestingClaimedAmount = ZERO
-    s.vestingClaimedEthAmount = ZERO
     s.harvestCount = ZERO
     s.tokenCollected = ZERO
     s.tokenToIpTreasury = ZERO
@@ -114,16 +99,11 @@ export function getOrCreateGlobalSummary(): GlobalRewardSummary {
     s.wipToBuyback = ZERO
     s.wipToAirdrop = ZERO
     s.wipToProtocol = ZERO
-    s.treasuryFlushedAmount = ZERO
-    s.airdropTokenClaimed = ZERO
-    s.airdropWipClaimed = ZERO
-    s.airdropClaimCount = ZERO
     s.lastUpdatedBlock = ZERO
     s.lastUpdatedTimestamp = ZERO
     // USD fields
     s.vestingTotalAmountUSD = ZERO_BD
     s.vestingClaimedAmountUSD = ZERO_BD
-    s.vestingClaimedEthAmountUSD = ZERO_BD
     s.tokenCollectedUSD = ZERO_BD
     s.tokenToIpTreasuryUSD = ZERO_BD
     s.tokenToAirdropUSD = ZERO_BD
@@ -132,45 +112,49 @@ export function getOrCreateGlobalSummary(): GlobalRewardSummary {
     s.wipToBuybackUSD = ZERO_BD
     s.wipToAirdropUSD = ZERO_BD
     s.wipToProtocolUSD = ZERO_BD
-    s.treasuryFlushedAmountUSD = ZERO_BD
-    s.airdropTokenClaimedUSD = ZERO_BD
-    s.airdropWipClaimedUSD = ZERO_BD
     s.totalRewardsUSD = ZERO_BD
     s.ipOwnerRewardsUSD = ZERO_BD
+    // Referral fields
+    s.referralWipAmount = ZERO
+    s.referralWipAmountUSD = ZERO_BD
   }
   return s as GlobalRewardSummary
 }
 
-export function recalcTotalRewardsUSD(
-  vestingClaimedAmountUSD: BigDecimal,
-  vestingClaimedEthAmountUSD: BigDecimal,
-  tokenCollectedUSD: BigDecimal,
-  tokenToIpTreasuryUSD: BigDecimal,
-  tokenToAirdropUSD: BigDecimal,
-  wipCollectedUSD: BigDecimal,
-  treasuryFlushedAmountUSD: BigDecimal,
-  airdropTokenClaimedUSD: BigDecimal,
-  airdropWipClaimedUSD: BigDecimal,
-): BigDecimal {
-  return vestingClaimedAmountUSD
-    .plus(vestingClaimedEthAmountUSD)
-    .plus(tokenCollectedUSD)
-    .plus(tokenToIpTreasuryUSD)
-    .plus(tokenToAirdropUSD)
-    .plus(wipCollectedUSD)
-    .plus(treasuryFlushedAmountUSD)
-    .plus(airdropTokenClaimedUSD)
-    .plus(airdropWipClaimedUSD)
+export function getOrCreateWalletUgcSummary(wallet: string): WalletUgcSummary {
+  let s = WalletUgcSummary.load(wallet)
+  if (s === null) {
+    s = new WalletUgcSummary(wallet)
+    s.memeTokenClaimed = ZERO
+    s.memeTokenClaimedUSD = ZERO_BD
+    s.wipClaimed = ZERO
+    s.wipClaimedUSD = ZERO_BD
+    s.claimCount = ZERO
+    s.lastClaimedTimestamp = ZERO
+  }
+  return s as WalletUgcSummary
 }
 
-export function recalcIpOwnerRewardsUSD(
+export function totalRewardsUSD(
   vestingClaimedAmountUSD: BigDecimal,
-  vestingClaimedEthAmountUSD: BigDecimal,
   wipToIpOwnerUSD: BigDecimal,
+  tokenToAirdropUSD: BigDecimal,
+  wipToAirdropUSD: BigDecimal,
   tokenToIpTreasuryUSD: BigDecimal,
+  referralWipAmountUSD: BigDecimal,
 ): BigDecimal {
   return vestingClaimedAmountUSD
-    .plus(vestingClaimedEthAmountUSD)
     .plus(wipToIpOwnerUSD)
+    .plus(tokenToAirdropUSD)
+    .plus(wipToAirdropUSD)
     .plus(tokenToIpTreasuryUSD)
+    .plus(referralWipAmountUSD)
+}
+
+export function ipOwnerRewardsUSD(
+  vestingClaimedAmountUSD: BigDecimal,
+  wipToIpOwnerUSD: BigDecimal,
+): BigDecimal {
+  return vestingClaimedAmountUSD
+    .plus(wipToIpOwnerUSD)
 }
