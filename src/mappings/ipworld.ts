@@ -74,6 +74,7 @@ export function handleHarvestDistributed(event: HarvestDistributed): void {
     ts.tokenToIpTreasuryUSD,
     ts.referralWipAmountUSD,
     ts.wipToProtocolUSD,
+    ts.wipToBuybackUSD,
   )
   ts.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
     ts.vestingClaimedAmountUSD,
@@ -110,6 +111,7 @@ export function handleHarvestDistributed(event: HarvestDistributed): void {
       is_.tokenToIpTreasuryUSD,
       is_.referralWipAmountUSD,
       is_.wipToProtocolUSD,
+      is_.wipToBuybackUSD,
     )
     is_.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
       is_.vestingClaimedAmountUSD,
@@ -146,6 +148,7 @@ export function handleHarvestDistributed(event: HarvestDistributed): void {
     gs.tokenToIpTreasuryUSD,
     gs.referralWipAmountUSD,
     gs.wipToProtocolUSD,
+    gs.wipToBuybackUSD,
   )
   gs.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
     gs.vestingClaimedAmountUSD,
@@ -189,6 +192,7 @@ export function handleTreasuryFlushed(event: TreasuryFlushed): void {
     ts.tokenToIpTreasuryUSD,
     ts.referralWipAmountUSD,
     ts.wipToProtocolUSD,
+    ts.wipToBuybackUSD,
   )
   ts.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
     ts.vestingClaimedAmountUSD,
@@ -210,6 +214,7 @@ export function handleTreasuryFlushed(event: TreasuryFlushed): void {
       is_.tokenToIpTreasuryUSD,
       is_.referralWipAmountUSD,
       is_.wipToProtocolUSD,
+      is_.wipToBuybackUSD,
     )
     is_.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
       is_.vestingClaimedAmountUSD,
@@ -231,6 +236,7 @@ export function handleTreasuryFlushed(event: TreasuryFlushed): void {
     gs.tokenToIpTreasuryUSD,
     gs.referralWipAmountUSD,
     gs.wipToProtocolUSD,
+    gs.wipToBuybackUSD,
   )
   gs.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
     gs.vestingClaimedAmountUSD,
@@ -258,6 +264,7 @@ export function handleReferralFeePaid(event: ReferralFeePaid): void {
     ts.tokenToIpTreasuryUSD,
     ts.referralWipAmountUSD,
     ts.wipToProtocolUSD,
+    ts.wipToBuybackUSD,
   )
   ts.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
     ts.vestingClaimedAmountUSD,
@@ -279,6 +286,7 @@ export function handleReferralFeePaid(event: ReferralFeePaid): void {
       is_.tokenToIpTreasuryUSD,
       is_.referralWipAmountUSD,
       is_.wipToProtocolUSD,
+      is_.wipToBuybackUSD,
     )
     is_.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
       is_.vestingClaimedAmountUSD,
@@ -300,6 +308,7 @@ export function handleReferralFeePaid(event: ReferralFeePaid): void {
     gs.tokenToIpTreasuryUSD,
     gs.referralWipAmountUSD,
     gs.wipToProtocolUSD,
+    gs.wipToBuybackUSD,
   )
   gs.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
     gs.vestingClaimedAmountUSD,
@@ -368,6 +377,7 @@ export function handleLinked(event: Linked): void {
     is_.tokenToIpTreasuryUSD,
     is_.referralWipAmountUSD,
     is_.wipToProtocolUSD,
+    is_.wipToBuybackUSD,
   )
   is_.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
     is_.vestingClaimedAmountUSD,

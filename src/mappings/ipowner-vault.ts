@@ -22,6 +22,7 @@ export function handleVestedTokensAndEthClaimed(event: VestedTokensAndEthClaimed
     ts.tokenToIpTreasuryUSD,
     ts.referralWipAmountUSD,
     ts.wipToProtocolUSD,
+    ts.wipToBuybackUSD,
   )
   ts.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
     ts.vestingClaimedAmountUSD,
@@ -43,6 +44,7 @@ export function handleVestedTokensAndEthClaimed(event: VestedTokensAndEthClaimed
       is_.tokenToIpTreasuryUSD,
       is_.referralWipAmountUSD,
       is_.wipToProtocolUSD,
+      is_.wipToBuybackUSD,
     )
     is_.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
       is_.vestingClaimedAmountUSD,
@@ -64,6 +66,7 @@ export function handleVestedTokensAndEthClaimed(event: VestedTokensAndEthClaimed
     gs.tokenToIpTreasuryUSD,
     gs.referralWipAmountUSD,
     gs.wipToProtocolUSD,
+    gs.wipToBuybackUSD,
   )
   gs.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
     gs.vestingClaimedAmountUSD,
@@ -89,6 +92,7 @@ export function handleVestingScheduleCreated(event: VestingScheduleCreated): voi
     ts.tokenToIpTreasuryUSD,
     ts.referralWipAmountUSD,
     ts.wipToProtocolUSD,
+    ts.wipToBuybackUSD,
   )
   ts.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
     ts.vestingClaimedAmountUSD,
@@ -111,6 +115,7 @@ export function handleVestingScheduleCreated(event: VestingScheduleCreated): voi
       is_.tokenToIpTreasuryUSD,
       is_.referralWipAmountUSD,
       is_.wipToProtocolUSD,
+      is_.wipToBuybackUSD,
     )
     is_.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
       is_.vestingClaimedAmountUSD,
@@ -131,6 +136,7 @@ export function handleVestingScheduleCreated(event: VestingScheduleCreated): voi
     gs.tokenToIpTreasuryUSD,
     gs.referralWipAmountUSD,
     gs.wipToProtocolUSD,
+    gs.wipToBuybackUSD,
   )
   gs.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
     gs.vestingClaimedAmountUSD,
@@ -157,6 +163,7 @@ export function handleReleasedVested(event: ReleasedVested): void {
     ts.tokenToIpTreasuryUSD,
     ts.referralWipAmountUSD,
     ts.wipToProtocolUSD,
+    ts.wipToBuybackUSD,
   )
   ts.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
     ts.vestingClaimedAmountUSD,
@@ -178,6 +185,7 @@ export function handleReleasedVested(event: ReleasedVested): void {
       is_.tokenToIpTreasuryUSD,
       is_.referralWipAmountUSD,
       is_.wipToProtocolUSD,
+      is_.wipToBuybackUSD,
     )
     is_.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
       is_.vestingClaimedAmountUSD,
@@ -199,6 +207,7 @@ export function handleReleasedVested(event: ReleasedVested): void {
     gs.tokenToIpTreasuryUSD,
     gs.referralWipAmountUSD,
     gs.wipToProtocolUSD,
+    gs.wipToBuybackUSD,
   )
   gs.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
     gs.vestingClaimedAmountUSD,
