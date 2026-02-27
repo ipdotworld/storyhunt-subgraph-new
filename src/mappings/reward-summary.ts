@@ -139,6 +139,7 @@ export function totalRewardsUSD(
   wipToAirdropUSD: BigDecimal,
   tokenToIpTreasuryUSD: BigDecimal,
   referralWipAmountUSD: BigDecimal,
+  wipToProtocolUSD: BigDecimal,
 ): BigDecimal {
   return vestingClaimedAmountUSD
     .plus(wipToIpOwnerUSD)
@@ -146,6 +147,7 @@ export function totalRewardsUSD(
     .plus(wipToAirdropUSD)
     .plus(tokenToIpTreasuryUSD)
     .plus(referralWipAmountUSD)
+    .plus(wipToProtocolUSD)
 }
 
 export function ipOwnerRewardsUSD(
