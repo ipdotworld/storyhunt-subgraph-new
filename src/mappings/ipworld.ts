@@ -1,7 +1,7 @@
 import { BigInt } from '@graphprotocol/graph-ts'
 import { TokenDeployed, HarvestDistributed, AirdropClaimed, TreasuryFlushed, Linked, ReferralFeePaid } from '../types/IPWorld/IPWorld'
 import { IpTokenLink, TokenDeployment } from '../types/schema'
-import { getOrCreateTokenSummary, getOrCreateIpSummary, getOrCreateGlobalSummary, getOrCreateWalletUgcSummary, totalRewardsUSD, ipOwnerRewardsUSD } from './reward-summary'
+import { getOrCreateTokenSummary, getOrCreateIpSummary, getOrCreateGlobalSummary, getOrCreateWalletUgcSummary, getOrCreateWalletTokenUgcSummary, totalRewardsUSD, ipOwnerRewardsUSD } from './reward-summary'
 import { wipToUSD, tokenToUSD } from '../utils/usdConversion'
 
 const ONE = BigInt.fromI32(1)
@@ -166,14 +166,25 @@ export function handleAirdropClaimed(event: AirdropClaimed): void {
   const airdropTokenUSDDelta = tokenToUSD(event.params.tokenAmount, token)
   const airdropWipUSDDelta = wipToUSD(event.params.wethAmount)
 
+  // Update wallet-level summary
   const ws = getOrCreateWalletUgcSummary(recipient)
-  ws.memeTokenClaimed = ws.memeTokenClaimed.plus(event.params.tokenAmount)
-  ws.memeTokenClaimedUSD = ws.memeTokenClaimedUSD.plus(airdropTokenUSDDelta)
-  ws.wipClaimed = ws.wipClaimed.plus(event.params.wethAmount)
-  ws.wipClaimedUSD = ws.wipClaimedUSD.plus(airdropWipUSDDelta)
+  ws.ugcMemeTokenClaimed = ws.ugcMemeTokenClaimed.plus(event.params.tokenAmount)
+  ws.ugcMemeTokenClaimedUSD = ws.ugcMemeTokenClaimedUSD.plus(airdropTokenUSDDelta)
+  ws.ugcWipClaimed = ws.ugcWipClaimed.plus(event.params.wethAmount)
+  ws.ugcWipClaimedUSD = ws.ugcWipClaimedUSD.plus(airdropWipUSDDelta)
   ws.claimCount = ws.claimCount.plus(ONE)
   ws.lastClaimedTimestamp = event.block.timestamp
   ws.save()
+
+  // Update wallet + token level summary
+  const wts = getOrCreateWalletTokenUgcSummary(recipient, token)
+  wts.ugcMemeTokenClaimed = wts.ugcMemeTokenClaimed.plus(event.params.tokenAmount)
+  wts.ugcMemeTokenClaimedUSD = wts.ugcMemeTokenClaimedUSD.plus(airdropTokenUSDDelta)
+  wts.ugcWipClaimed = wts.ugcWipClaimed.plus(event.params.wethAmount)
+  wts.ugcWipClaimedUSD = wts.ugcWipClaimedUSD.plus(airdropWipUSDDelta)
+  wts.claimCount = wts.claimCount.plus(ONE)
+  wts.lastClaimedTimestamp = event.block.timestamp
+  wts.save()
 }
 
 export function handleTreasuryFlushed(event: TreasuryFlushed): void {

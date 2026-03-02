@@ -609,10 +609,23 @@ type GlobalRewardSummary @entity {
 
 type WalletUgcSummary @entity {
   id: ID!
-  memeTokenClaimed: BigInt!
-  memeTokenClaimedUSD: BigDecimal!
-  wipClaimed: BigInt!
-  wipClaimedUSD: BigDecimal!
+  ugcMemeTokenClaimed: BigInt!
+  ugcMemeTokenClaimedUSD: BigDecimal!
+  ugcWipClaimed: BigInt!
+  ugcWipClaimedUSD: BigDecimal!
+  claimCount: BigInt!
+  lastClaimedTimestamp: BigInt!
+}
+
+type WalletTokenUgcSummary @entity {
+  # id: {wallet}-{token}
+  id: ID!
+  wallet: String!
+  token: String!
+  ugcMemeTokenClaimed: BigInt!
+  ugcMemeTokenClaimedUSD: BigDecimal!
+  ugcWipClaimed: BigInt!
+  ugcWipClaimedUSD: BigDecimal!
   claimCount: BigInt!
   lastClaimedTimestamp: BigInt!
 }

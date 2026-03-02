@@ -55,6 +55,7 @@ dataSources:
         - IpRewardSummary
         - GlobalRewardSummary
         - WalletUgcSummary
+        - WalletTokenUgcSummary
       abis:
         - name: IPWorld
           file: ./abis/IPWorld.json

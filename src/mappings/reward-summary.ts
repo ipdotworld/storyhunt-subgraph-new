@@ -1,5 +1,5 @@
 import { BigInt, BigDecimal } from '@graphprotocol/graph-ts'
-import { TokenRewardSummary, IpRewardSummary, GlobalRewardSummary, WalletUgcSummary } from '../types/schema'
+import { TokenRewardSummary, IpRewardSummary, GlobalRewardSummary, WalletUgcSummary, WalletTokenUgcSummary } from '../types/schema'
 
 const ZERO = BigInt.fromI32(0)
 const ZERO_BD = BigDecimal.fromString('0')
@@ -122,14 +122,31 @@ export function getOrCreateWalletUgcSummary(wallet: string): WalletUgcSummary {
   let s = WalletUgcSummary.load(wallet)
   if (s === null) {
     s = new WalletUgcSummary(wallet)
-    s.memeTokenClaimed = ZERO
-    s.memeTokenClaimedUSD = ZERO_BD
-    s.wipClaimed = ZERO
-    s.wipClaimedUSD = ZERO_BD
+    s.ugcMemeTokenClaimed = ZERO
+    s.ugcMemeTokenClaimedUSD = ZERO_BD
+    s.ugcWipClaimed = ZERO
+    s.ugcWipClaimedUSD = ZERO_BD
     s.claimCount = ZERO
     s.lastClaimedTimestamp = ZERO
   }
   return s as WalletUgcSummary
+}
+
+export function getOrCreateWalletTokenUgcSummary(wallet: string, token: string): WalletTokenUgcSummary {
+  let id = wallet + '-' + token
+  let s = WalletTokenUgcSummary.load(id)
+  if (s === null) {
+    s = new WalletTokenUgcSummary(id)
+    s.wallet = wallet
+    s.token = token
+    s.ugcMemeTokenClaimed = ZERO
+    s.ugcMemeTokenClaimedUSD = ZERO_BD
+    s.ugcWipClaimed = ZERO
+    s.ugcWipClaimedUSD = ZERO_BD
+    s.claimCount = ZERO
+    s.lastClaimedTimestamp = ZERO
+  }
+  return s as WalletTokenUgcSummary
 }
 
 export function totalRewardsUSD(
