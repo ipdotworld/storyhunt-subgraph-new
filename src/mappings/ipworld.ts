@@ -1,7 +1,7 @@
 import { BigInt } from '@graphprotocol/graph-ts'
-import { TokenDeployed, HarvestDistributed, AirdropClaimed, TreasuryFlushed, Linked, ReferralFeePaid } from '../types/IPWorld/IPWorld'
+import { TokenDeployed, HarvestDistributed, AirdropClaimedUgc, AirdropClaimedHolder, TreasuryFlushed, Linked, ReferralFeePaid } from '../types/IPWorld/IPWorld'
 import { IpTokenLink, TokenDeployment } from '../types/schema'
-import { getOrCreateTokenSummary, getOrCreateIpSummary, getOrCreateGlobalSummary, getOrCreateWalletUgcSummary, getOrCreateWalletTokenUgcSummary, totalRewardsUSD, ipOwnerRewardsUSD } from './reward-summary'
+import { getOrCreateTokenSummary, getOrCreateIpSummary, getOrCreateGlobalSummary, getOrCreateWalletAirdropSummary, getOrCreateWalletTokenAirdropSummary, totalRewardsUSD, ipOwnerRewardsUSD } from './reward-summary'
 import { wipToUSD, tokenToUSD } from '../utils/usdConversion'
 
 const ONE = BigInt.fromI32(1)
@@ -159,31 +159,59 @@ export function handleHarvestDistributed(event: HarvestDistributed): void {
   gs.save()
 }
 
-export function handleAirdropClaimed(event: AirdropClaimed): void {
+export function handleAirdropClaimedUgc(event: AirdropClaimedUgc): void {
   const token = event.params.token.toHexString()
   const recipient = event.params.recipient.toHexString()
 
   const airdropTokenUSDDelta = tokenToUSD(event.params.tokenAmount, token)
   const airdropWipUSDDelta = wipToUSD(event.params.wethAmount)
 
-  // Update wallet-level summary
-  const ws = getOrCreateWalletUgcSummary(recipient)
+  // Update wallet-level summary (UGC fields only)
+  const ws = getOrCreateWalletAirdropSummary(recipient)
   ws.ugcMemeTokenClaimed = ws.ugcMemeTokenClaimed.plus(event.params.tokenAmount)
   ws.ugcMemeTokenClaimedUSD = ws.ugcMemeTokenClaimedUSD.plus(airdropTokenUSDDelta)
   ws.ugcWipClaimed = ws.ugcWipClaimed.plus(event.params.wethAmount)
   ws.ugcWipClaimedUSD = ws.ugcWipClaimedUSD.plus(airdropWipUSDDelta)
-  ws.claimCount = ws.claimCount.plus(ONE)
-  ws.lastClaimedTimestamp = event.block.timestamp
+  ws.ugcClaimCount = ws.ugcClaimCount.plus(ONE)
+  ws.ugcLastClaimedTimestamp = event.block.timestamp
   ws.save()
 
-  // Update wallet + token level summary
-  const wts = getOrCreateWalletTokenUgcSummary(recipient, token)
+  // Update wallet + token level summary (UGC fields only)
+  const wts = getOrCreateWalletTokenAirdropSummary(recipient, token)
   wts.ugcMemeTokenClaimed = wts.ugcMemeTokenClaimed.plus(event.params.tokenAmount)
   wts.ugcMemeTokenClaimedUSD = wts.ugcMemeTokenClaimedUSD.plus(airdropTokenUSDDelta)
   wts.ugcWipClaimed = wts.ugcWipClaimed.plus(event.params.wethAmount)
   wts.ugcWipClaimedUSD = wts.ugcWipClaimedUSD.plus(airdropWipUSDDelta)
-  wts.claimCount = wts.claimCount.plus(ONE)
-  wts.lastClaimedTimestamp = event.block.timestamp
+  wts.ugcClaimCount = wts.ugcClaimCount.plus(ONE)
+  wts.ugcLastClaimedTimestamp = event.block.timestamp
+  wts.save()
+}
+
+export function handleAirdropClaimedHolder(event: AirdropClaimedHolder): void {
+  const token = event.params.token.toHexString()
+  const recipient = event.params.recipient.toHexString()
+
+  const airdropTokenUSDDelta = tokenToUSD(event.params.tokenAmount, token)
+  const airdropWipUSDDelta = wipToUSD(event.params.wethAmount)
+
+  // Update wallet-level summary (Holder fields only)
+  const ws = getOrCreateWalletAirdropSummary(recipient)
+  ws.holderMemeTokenClaimed = ws.holderMemeTokenClaimed.plus(event.params.tokenAmount)
+  ws.holderMemeTokenClaimedUSD = ws.holderMemeTokenClaimedUSD.plus(airdropTokenUSDDelta)
+  ws.holderWipClaimed = ws.holderWipClaimed.plus(event.params.wethAmount)
+  ws.holderWipClaimedUSD = ws.holderWipClaimedUSD.plus(airdropWipUSDDelta)
+  ws.holderClaimCount = ws.holderClaimCount.plus(ONE)
+  ws.holderLastClaimedTimestamp = event.block.timestamp
+  ws.save()
+
+  // Update wallet + token level summary (Holder fields only)
+  const wts = getOrCreateWalletTokenAirdropSummary(recipient, token)
+  wts.holderMemeTokenClaimed = wts.holderMemeTokenClaimed.plus(event.params.tokenAmount)
+  wts.holderMemeTokenClaimedUSD = wts.holderMemeTokenClaimedUSD.plus(airdropTokenUSDDelta)
+  wts.holderWipClaimed = wts.holderWipClaimed.plus(event.params.wethAmount)
+  wts.holderWipClaimedUSD = wts.holderWipClaimedUSD.plus(airdropWipUSDDelta)
+  wts.holderClaimCount = wts.holderClaimCount.plus(ONE)
+  wts.holderLastClaimedTimestamp = event.block.timestamp
   wts.save()
 }
 

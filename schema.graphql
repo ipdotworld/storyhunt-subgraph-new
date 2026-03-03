@@ -607,25 +607,41 @@ type GlobalRewardSummary @entity {
   referralWipAmountUSD: BigDecimal!
 }
 
-type WalletUgcSummary @entity {
-  id: ID!
+type WalletAirdropSummary @entity {
+  id: ID!  # wallet address
+  # UGC
   ugcMemeTokenClaimed: BigInt!
   ugcMemeTokenClaimedUSD: BigDecimal!
   ugcWipClaimed: BigInt!
   ugcWipClaimedUSD: BigDecimal!
-  claimCount: BigInt!
-  lastClaimedTimestamp: BigInt!
+  ugcClaimCount: BigInt!
+  ugcLastClaimedTimestamp: BigInt!
+  # Holder
+  holderMemeTokenClaimed: BigInt!
+  holderMemeTokenClaimedUSD: BigDecimal!
+  holderWipClaimed: BigInt!
+  holderWipClaimedUSD: BigDecimal!
+  holderClaimCount: BigInt!
+  holderLastClaimedTimestamp: BigInt!
 }
 
-type WalletTokenUgcSummary @entity {
+type WalletTokenAirdropSummary @entity {
   # id: {wallet}-{token}
   id: ID!
   wallet: String!
   token: String!
+  # UGC
   ugcMemeTokenClaimed: BigInt!
   ugcMemeTokenClaimedUSD: BigDecimal!
   ugcWipClaimed: BigInt!
   ugcWipClaimedUSD: BigDecimal!
-  claimCount: BigInt!
-  lastClaimedTimestamp: BigInt!
+  ugcClaimCount: BigInt!
+  ugcLastClaimedTimestamp: BigInt!
+  # Holder
+  holderMemeTokenClaimed: BigInt!
+  holderMemeTokenClaimedUSD: BigDecimal!
+  holderWipClaimed: BigInt!
+  holderWipClaimedUSD: BigDecimal!
+  holderClaimCount: BigInt!
+  holderLastClaimedTimestamp: BigInt!
 }
