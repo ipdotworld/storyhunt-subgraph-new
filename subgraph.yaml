@@ -54,8 +54,8 @@ dataSources:
         - TokenRewardSummary
         - IpRewardSummary
         - GlobalRewardSummary
-        - WalletUgcSummary
-        - WalletTokenUgcSummary
+        - WalletAirdropSummary
+        - WalletTokenAirdropSummary
       abis:
         - name: IPWorld
           file: ./abis/IPWorld.json
@@ -64,8 +64,10 @@ dataSources:
           handler: handleTokenDeployed
         - event: HarvestDistributed(indexed address,uint256,uint256,uint256,uint256,uint256,uint256,uint256)
           handler: handleHarvestDistributed
-        - event: AirdropClaimed(indexed address,indexed address,uint256,uint256)
-          handler: handleAirdropClaimed
+        - event: AirdropClaimedUgc(indexed address,indexed address,uint256,uint256)
+          handler: handleAirdropClaimedUgc
+        - event: AirdropClaimedHolder(indexed address,indexed address,uint256,uint256)
+          handler: handleAirdropClaimedHolder
         - event: TreasuryFlushed(indexed address,indexed address,uint256)
           handler: handleTreasuryFlushed
         - event: Linked(indexed address,indexed address)

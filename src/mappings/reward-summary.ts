@@ -1,5 +1,5 @@
 import { BigInt, BigDecimal } from '@graphprotocol/graph-ts'
-import { TokenRewardSummary, IpRewardSummary, GlobalRewardSummary, WalletUgcSummary, WalletTokenUgcSummary } from '../types/schema'
+import { TokenRewardSummary, IpRewardSummary, GlobalRewardSummary, WalletAirdropSummary, WalletTokenAirdropSummary } from '../types/schema'
 
 const ZERO = BigInt.fromI32(0)
 const ZERO_BD = BigDecimal.fromString('0')
@@ -118,35 +118,51 @@ export function getOrCreateGlobalSummary(): GlobalRewardSummary {
   return s as GlobalRewardSummary
 }
 
-export function getOrCreateWalletUgcSummary(wallet: string): WalletUgcSummary {
-  let s = WalletUgcSummary.load(wallet)
+export function getOrCreateWalletAirdropSummary(wallet: string): WalletAirdropSummary {
+  let s = WalletAirdropSummary.load(wallet)
   if (s === null) {
-    s = new WalletUgcSummary(wallet)
+    s = new WalletAirdropSummary(wallet)
+    // UGC fields
     s.ugcMemeTokenClaimed = ZERO
     s.ugcMemeTokenClaimedUSD = ZERO_BD
     s.ugcWipClaimed = ZERO
     s.ugcWipClaimedUSD = ZERO_BD
-    s.claimCount = ZERO
-    s.lastClaimedTimestamp = ZERO
+    s.ugcClaimCount = ZERO
+    s.ugcLastClaimedTimestamp = ZERO
+    // Holder fields
+    s.holderMemeTokenClaimed = ZERO
+    s.holderMemeTokenClaimedUSD = ZERO_BD
+    s.holderWipClaimed = ZERO
+    s.holderWipClaimedUSD = ZERO_BD
+    s.holderClaimCount = ZERO
+    s.holderLastClaimedTimestamp = ZERO
   }
-  return s as WalletUgcSummary
+  return s as WalletAirdropSummary
 }
 
-export function getOrCreateWalletTokenUgcSummary(wallet: string, token: string): WalletTokenUgcSummary {
+export function getOrCreateWalletTokenAirdropSummary(wallet: string, token: string): WalletTokenAirdropSummary {
   let id = wallet + '-' + token
-  let s = WalletTokenUgcSummary.load(id)
+  let s = WalletTokenAirdropSummary.load(id)
   if (s === null) {
-    s = new WalletTokenUgcSummary(id)
+    s = new WalletTokenAirdropSummary(id)
     s.wallet = wallet
     s.token = token
+    // UGC fields
     s.ugcMemeTokenClaimed = ZERO
     s.ugcMemeTokenClaimedUSD = ZERO_BD
     s.ugcWipClaimed = ZERO
     s.ugcWipClaimedUSD = ZERO_BD
-    s.claimCount = ZERO
-    s.lastClaimedTimestamp = ZERO
+    s.ugcClaimCount = ZERO
+    s.ugcLastClaimedTimestamp = ZERO
+    // Holder fields
+    s.holderMemeTokenClaimed = ZERO
+    s.holderMemeTokenClaimedUSD = ZERO_BD
+    s.holderWipClaimed = ZERO
+    s.holderWipClaimedUSD = ZERO_BD
+    s.holderClaimCount = ZERO
+    s.holderLastClaimedTimestamp = ZERO
   }
-  return s as WalletTokenUgcSummary
+  return s as WalletTokenAirdropSummary
 }
 
 export function totalRewardsUSD(
