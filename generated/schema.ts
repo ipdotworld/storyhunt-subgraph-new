@@ -4867,7 +4867,7 @@ export class GlobalRewardSummary extends Entity {
   }
 }
 
-export class WalletUgcSummary extends Entity {
+export class WalletAirdropSummary extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
@@ -4875,25 +4875,25 @@ export class WalletUgcSummary extends Entity {
 
   save(): void {
     let id = this.get("id");
-    assert(id != null, "Cannot save WalletUgcSummary entity without an ID");
+    assert(id != null, "Cannot save WalletAirdropSummary entity without an ID");
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type WalletUgcSummary must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+        `Entities of type WalletAirdropSummary must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
       );
-      store.set("WalletUgcSummary", id.toString(), this);
+      store.set("WalletAirdropSummary", id.toString(), this);
     }
   }
 
-  static loadInBlock(id: string): WalletUgcSummary | null {
-    return changetype<WalletUgcSummary | null>(
-      store.get_in_block("WalletUgcSummary", id),
+  static loadInBlock(id: string): WalletAirdropSummary | null {
+    return changetype<WalletAirdropSummary | null>(
+      store.get_in_block("WalletAirdropSummary", id),
     );
   }
 
-  static load(id: string): WalletUgcSummary | null {
-    return changetype<WalletUgcSummary | null>(
-      store.get("WalletUgcSummary", id),
+  static load(id: string): WalletAirdropSummary | null {
+    return changetype<WalletAirdropSummary | null>(
+      store.get("WalletAirdropSummary", id),
     );
   }
 
@@ -4962,8 +4962,8 @@ export class WalletUgcSummary extends Entity {
     this.set("ugcWipClaimedUSD", Value.fromBigDecimal(value));
   }
 
-  get claimCount(): BigInt {
-    let value = this.get("claimCount");
+  get ugcClaimCount(): BigInt {
+    let value = this.get("ugcClaimCount");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -4971,12 +4971,12 @@ export class WalletUgcSummary extends Entity {
     }
   }
 
-  set claimCount(value: BigInt) {
-    this.set("claimCount", Value.fromBigInt(value));
+  set ugcClaimCount(value: BigInt) {
+    this.set("ugcClaimCount", Value.fromBigInt(value));
   }
 
-  get lastClaimedTimestamp(): BigInt {
-    let value = this.get("lastClaimedTimestamp");
+  get ugcLastClaimedTimestamp(): BigInt {
+    let value = this.get("ugcLastClaimedTimestamp");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -4984,12 +4984,90 @@ export class WalletUgcSummary extends Entity {
     }
   }
 
-  set lastClaimedTimestamp(value: BigInt) {
-    this.set("lastClaimedTimestamp", Value.fromBigInt(value));
+  set ugcLastClaimedTimestamp(value: BigInt) {
+    this.set("ugcLastClaimedTimestamp", Value.fromBigInt(value));
+  }
+
+  get holderMemeTokenClaimed(): BigInt {
+    let value = this.get("holderMemeTokenClaimed");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set holderMemeTokenClaimed(value: BigInt) {
+    this.set("holderMemeTokenClaimed", Value.fromBigInt(value));
+  }
+
+  get holderMemeTokenClaimedUSD(): BigDecimal {
+    let value = this.get("holderMemeTokenClaimedUSD");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigDecimal();
+    }
+  }
+
+  set holderMemeTokenClaimedUSD(value: BigDecimal) {
+    this.set("holderMemeTokenClaimedUSD", Value.fromBigDecimal(value));
+  }
+
+  get holderWipClaimed(): BigInt {
+    let value = this.get("holderWipClaimed");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set holderWipClaimed(value: BigInt) {
+    this.set("holderWipClaimed", Value.fromBigInt(value));
+  }
+
+  get holderWipClaimedUSD(): BigDecimal {
+    let value = this.get("holderWipClaimedUSD");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigDecimal();
+    }
+  }
+
+  set holderWipClaimedUSD(value: BigDecimal) {
+    this.set("holderWipClaimedUSD", Value.fromBigDecimal(value));
+  }
+
+  get holderClaimCount(): BigInt {
+    let value = this.get("holderClaimCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set holderClaimCount(value: BigInt) {
+    this.set("holderClaimCount", Value.fromBigInt(value));
+  }
+
+  get holderLastClaimedTimestamp(): BigInt {
+    let value = this.get("holderLastClaimedTimestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set holderLastClaimedTimestamp(value: BigInt) {
+    this.set("holderLastClaimedTimestamp", Value.fromBigInt(value));
   }
 }
 
-export class WalletTokenUgcSummary extends Entity {
+export class WalletTokenAirdropSummary extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
@@ -4999,26 +5077,26 @@ export class WalletTokenUgcSummary extends Entity {
     let id = this.get("id");
     assert(
       id != null,
-      "Cannot save WalletTokenUgcSummary entity without an ID",
+      "Cannot save WalletTokenAirdropSummary entity without an ID",
     );
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type WalletTokenUgcSummary must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+        `Entities of type WalletTokenAirdropSummary must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
       );
-      store.set("WalletTokenUgcSummary", id.toString(), this);
+      store.set("WalletTokenAirdropSummary", id.toString(), this);
     }
   }
 
-  static loadInBlock(id: string): WalletTokenUgcSummary | null {
-    return changetype<WalletTokenUgcSummary | null>(
-      store.get_in_block("WalletTokenUgcSummary", id),
+  static loadInBlock(id: string): WalletTokenAirdropSummary | null {
+    return changetype<WalletTokenAirdropSummary | null>(
+      store.get_in_block("WalletTokenAirdropSummary", id),
     );
   }
 
-  static load(id: string): WalletTokenUgcSummary | null {
-    return changetype<WalletTokenUgcSummary | null>(
-      store.get("WalletTokenUgcSummary", id),
+  static load(id: string): WalletTokenAirdropSummary | null {
+    return changetype<WalletTokenAirdropSummary | null>(
+      store.get("WalletTokenAirdropSummary", id),
     );
   }
 
@@ -5113,8 +5191,8 @@ export class WalletTokenUgcSummary extends Entity {
     this.set("ugcWipClaimedUSD", Value.fromBigDecimal(value));
   }
 
-  get claimCount(): BigInt {
-    let value = this.get("claimCount");
+  get ugcClaimCount(): BigInt {
+    let value = this.get("ugcClaimCount");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -5122,12 +5200,12 @@ export class WalletTokenUgcSummary extends Entity {
     }
   }
 
-  set claimCount(value: BigInt) {
-    this.set("claimCount", Value.fromBigInt(value));
+  set ugcClaimCount(value: BigInt) {
+    this.set("ugcClaimCount", Value.fromBigInt(value));
   }
 
-  get lastClaimedTimestamp(): BigInt {
-    let value = this.get("lastClaimedTimestamp");
+  get ugcLastClaimedTimestamp(): BigInt {
+    let value = this.get("ugcLastClaimedTimestamp");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -5135,8 +5213,289 @@ export class WalletTokenUgcSummary extends Entity {
     }
   }
 
-  set lastClaimedTimestamp(value: BigInt) {
-    this.set("lastClaimedTimestamp", Value.fromBigInt(value));
+  set ugcLastClaimedTimestamp(value: BigInt) {
+    this.set("ugcLastClaimedTimestamp", Value.fromBigInt(value));
+  }
+
+  get holderMemeTokenClaimed(): BigInt {
+    let value = this.get("holderMemeTokenClaimed");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set holderMemeTokenClaimed(value: BigInt) {
+    this.set("holderMemeTokenClaimed", Value.fromBigInt(value));
+  }
+
+  get holderMemeTokenClaimedUSD(): BigDecimal {
+    let value = this.get("holderMemeTokenClaimedUSD");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigDecimal();
+    }
+  }
+
+  set holderMemeTokenClaimedUSD(value: BigDecimal) {
+    this.set("holderMemeTokenClaimedUSD", Value.fromBigDecimal(value));
+  }
+
+  get holderWipClaimed(): BigInt {
+    let value = this.get("holderWipClaimed");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set holderWipClaimed(value: BigInt) {
+    this.set("holderWipClaimed", Value.fromBigInt(value));
+  }
+
+  get holderWipClaimedUSD(): BigDecimal {
+    let value = this.get("holderWipClaimedUSD");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigDecimal();
+    }
+  }
+
+  set holderWipClaimedUSD(value: BigDecimal) {
+    this.set("holderWipClaimedUSD", Value.fromBigDecimal(value));
+  }
+
+  get holderClaimCount(): BigInt {
+    let value = this.get("holderClaimCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set holderClaimCount(value: BigInt) {
+    this.set("holderClaimCount", Value.fromBigInt(value));
+  }
+
+  get holderLastClaimedTimestamp(): BigInt {
+    let value = this.get("holderLastClaimedTimestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set holderLastClaimedTimestamp(value: BigInt) {
+    this.set("holderLastClaimedTimestamp", Value.fromBigInt(value));
+  }
+}
+
+export class TokenAirdropClaimSummary extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(
+      id != null,
+      "Cannot save TokenAirdropClaimSummary entity without an ID",
+    );
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type TokenAirdropClaimSummary must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set("TokenAirdropClaimSummary", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): TokenAirdropClaimSummary | null {
+    return changetype<TokenAirdropClaimSummary | null>(
+      store.get_in_block("TokenAirdropClaimSummary", id),
+    );
+  }
+
+  static load(id: string): TokenAirdropClaimSummary | null {
+    return changetype<TokenAirdropClaimSummary | null>(
+      store.get("TokenAirdropClaimSummary", id),
+    );
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get ugcMemeTokenClaimed(): BigInt {
+    let value = this.get("ugcMemeTokenClaimed");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set ugcMemeTokenClaimed(value: BigInt) {
+    this.set("ugcMemeTokenClaimed", Value.fromBigInt(value));
+  }
+
+  get ugcMemeTokenClaimedUSD(): BigDecimal {
+    let value = this.get("ugcMemeTokenClaimedUSD");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigDecimal();
+    }
+  }
+
+  set ugcMemeTokenClaimedUSD(value: BigDecimal) {
+    this.set("ugcMemeTokenClaimedUSD", Value.fromBigDecimal(value));
+  }
+
+  get ugcWipClaimed(): BigInt {
+    let value = this.get("ugcWipClaimed");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set ugcWipClaimed(value: BigInt) {
+    this.set("ugcWipClaimed", Value.fromBigInt(value));
+  }
+
+  get ugcWipClaimedUSD(): BigDecimal {
+    let value = this.get("ugcWipClaimedUSD");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigDecimal();
+    }
+  }
+
+  set ugcWipClaimedUSD(value: BigDecimal) {
+    this.set("ugcWipClaimedUSD", Value.fromBigDecimal(value));
+  }
+
+  get ugcClaimCount(): BigInt {
+    let value = this.get("ugcClaimCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set ugcClaimCount(value: BigInt) {
+    this.set("ugcClaimCount", Value.fromBigInt(value));
+  }
+
+  get ugcLastClaimedTimestamp(): BigInt {
+    let value = this.get("ugcLastClaimedTimestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set ugcLastClaimedTimestamp(value: BigInt) {
+    this.set("ugcLastClaimedTimestamp", Value.fromBigInt(value));
+  }
+
+  get holderMemeTokenClaimed(): BigInt {
+    let value = this.get("holderMemeTokenClaimed");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set holderMemeTokenClaimed(value: BigInt) {
+    this.set("holderMemeTokenClaimed", Value.fromBigInt(value));
+  }
+
+  get holderMemeTokenClaimedUSD(): BigDecimal {
+    let value = this.get("holderMemeTokenClaimedUSD");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigDecimal();
+    }
+  }
+
+  set holderMemeTokenClaimedUSD(value: BigDecimal) {
+    this.set("holderMemeTokenClaimedUSD", Value.fromBigDecimal(value));
+  }
+
+  get holderWipClaimed(): BigInt {
+    let value = this.get("holderWipClaimed");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set holderWipClaimed(value: BigInt) {
+    this.set("holderWipClaimed", Value.fromBigInt(value));
+  }
+
+  get holderWipClaimedUSD(): BigDecimal {
+    let value = this.get("holderWipClaimedUSD");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigDecimal();
+    }
+  }
+
+  set holderWipClaimedUSD(value: BigDecimal) {
+    this.set("holderWipClaimedUSD", Value.fromBigDecimal(value));
+  }
+
+  get holderClaimCount(): BigInt {
+    let value = this.get("holderClaimCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set holderClaimCount(value: BigInt) {
+    this.set("holderClaimCount", Value.fromBigInt(value));
+  }
+
+  get holderLastClaimedTimestamp(): BigInt {
+    let value = this.get("holderLastClaimedTimestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set holderLastClaimedTimestamp(value: BigInt) {
+    this.set("holderLastClaimedTimestamp", Value.fromBigInt(value));
   }
 }
 

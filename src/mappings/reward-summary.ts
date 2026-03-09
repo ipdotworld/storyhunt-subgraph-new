@@ -1,5 +1,5 @@
 import { BigInt, BigDecimal } from '@graphprotocol/graph-ts'
-import { TokenRewardSummary, IpRewardSummary, GlobalRewardSummary, WalletAirdropSummary, WalletTokenAirdropSummary } from '../types/schema'
+import { TokenRewardSummary, IpRewardSummary, GlobalRewardSummary, WalletAirdropSummary, WalletTokenAirdropSummary, TokenAirdropClaimSummary } from '../types/schema'
 
 const ZERO = BigInt.fromI32(0)
 const ZERO_BD = BigDecimal.fromString('0')
@@ -138,6 +138,28 @@ export function getOrCreateWalletAirdropSummary(wallet: string): WalletAirdropSu
     s.holderLastClaimedTimestamp = ZERO
   }
   return s as WalletAirdropSummary
+}
+
+export function getOrCreateTokenAirdropClaimSummary(token: string): TokenAirdropClaimSummary {
+  let s = TokenAirdropClaimSummary.load(token)
+  if (s === null) {
+    s = new TokenAirdropClaimSummary(token)
+    // UGC fields
+    s.ugcMemeTokenClaimed = ZERO
+    s.ugcMemeTokenClaimedUSD = ZERO_BD
+    s.ugcWipClaimed = ZERO
+    s.ugcWipClaimedUSD = ZERO_BD
+    s.ugcClaimCount = ZERO
+    s.ugcLastClaimedTimestamp = ZERO
+    // Holder fields
+    s.holderMemeTokenClaimed = ZERO
+    s.holderMemeTokenClaimedUSD = ZERO_BD
+    s.holderWipClaimed = ZERO
+    s.holderWipClaimedUSD = ZERO_BD
+    s.holderClaimCount = ZERO
+    s.holderLastClaimedTimestamp = ZERO
+  }
+  return s as TokenAirdropClaimSummary
 }
 
 export function getOrCreateWalletTokenAirdropSummary(wallet: string, token: string): WalletTokenAirdropSummary {

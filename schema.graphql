@@ -645,3 +645,21 @@ type WalletTokenAirdropSummary @entity {
   holderClaimCount: BigInt!
   holderLastClaimedTimestamp: BigInt!
 }
+
+type TokenAirdropClaimSummary @entity {
+  id: ID!  # token address
+  # UGC claims (content creators)
+  ugcMemeTokenClaimed: BigInt!
+  ugcMemeTokenClaimedUSD: BigDecimal!
+  ugcWipClaimed: BigInt!
+  ugcWipClaimedUSD: BigDecimal!
+  ugcClaimCount: BigInt!
+  ugcLastClaimedTimestamp: BigInt!
+  # Holder claims (token holders)
+  holderMemeTokenClaimed: BigInt!
+  holderMemeTokenClaimedUSD: BigDecimal!
+  holderWipClaimed: BigInt!
+  holderWipClaimedUSD: BigDecimal!
+  holderClaimCount: BigInt!
+  holderLastClaimedTimestamp: BigInt!
+}

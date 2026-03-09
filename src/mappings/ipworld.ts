@@ -1,7 +1,7 @@
 import { BigInt } from '@graphprotocol/graph-ts'
 import { TokenDeployed, HarvestDistributed, AirdropClaimedUgc, AirdropClaimedHolder, TreasuryFlushed, Linked, ReferralFeePaid } from '../types/IPWorld/IPWorld'
 import { IpTokenLink, TokenDeployment } from '../types/schema'
-import { getOrCreateTokenSummary, getOrCreateIpSummary, getOrCreateGlobalSummary, getOrCreateWalletAirdropSummary, getOrCreateWalletTokenAirdropSummary, totalRewardsUSD, ipOwnerRewardsUSD } from './reward-summary'
+import { getOrCreateTokenSummary, getOrCreateIpSummary, getOrCreateGlobalSummary, getOrCreateWalletAirdropSummary, getOrCreateWalletTokenAirdropSummary, getOrCreateTokenAirdropClaimSummary, totalRewardsUSD, ipOwnerRewardsUSD } from './reward-summary'
 import { wipToUSD, tokenToUSD } from '../utils/usdConversion'
 
 const ONE = BigInt.fromI32(1)
@@ -185,6 +185,16 @@ export function handleAirdropClaimedUgc(event: AirdropClaimedUgc): void {
   wts.ugcClaimCount = wts.ugcClaimCount.plus(ONE)
   wts.ugcLastClaimedTimestamp = event.block.timestamp
   wts.save()
+
+  // Update token-level airdrop claim summary (UGC fields only)
+  const tacs = getOrCreateTokenAirdropClaimSummary(token)
+  tacs.ugcMemeTokenClaimed = tacs.ugcMemeTokenClaimed.plus(event.params.tokenAmount)
+  tacs.ugcMemeTokenClaimedUSD = tacs.ugcMemeTokenClaimedUSD.plus(airdropTokenUSDDelta)
+  tacs.ugcWipClaimed = tacs.ugcWipClaimed.plus(event.params.wethAmount)
+  tacs.ugcWipClaimedUSD = tacs.ugcWipClaimedUSD.plus(airdropWipUSDDelta)
+  tacs.ugcClaimCount = tacs.ugcClaimCount.plus(ONE)
+  tacs.ugcLastClaimedTimestamp = event.block.timestamp
+  tacs.save()
 }
 
 export function handleAirdropClaimedHolder(event: AirdropClaimedHolder): void {
@@ -213,6 +223,16 @@ export function handleAirdropClaimedHolder(event: AirdropClaimedHolder): void {
   wts.holderClaimCount = wts.holderClaimCount.plus(ONE)
   wts.holderLastClaimedTimestamp = event.block.timestamp
   wts.save()
+
+  // Update token-level airdrop claim summary (Holder fields only)
+  const tacs = getOrCreateTokenAirdropClaimSummary(token)
+  tacs.holderMemeTokenClaimed = tacs.holderMemeTokenClaimed.plus(event.params.tokenAmount)
+  tacs.holderMemeTokenClaimedUSD = tacs.holderMemeTokenClaimedUSD.plus(airdropTokenUSDDelta)
+  tacs.holderWipClaimed = tacs.holderWipClaimed.plus(event.params.wethAmount)
+  tacs.holderWipClaimedUSD = tacs.holderWipClaimedUSD.plus(airdropWipUSDDelta)
+  tacs.holderClaimCount = tacs.holderClaimCount.plus(ONE)
+  tacs.holderLastClaimedTimestamp = event.block.timestamp
+  tacs.save()
 }
 
 export function handleTreasuryFlushed(event: TreasuryFlushed): void {
