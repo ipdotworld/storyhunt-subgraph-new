@@ -50,11 +50,11 @@ export function handleTokenDeployedV1(event: TokenDeployed1): void {
 export function handleHarvestV1(event: Harvest1): void {
   const token = event.params.token.toHexString()
 
-  const wethAmount = event.params.wethAmount
+  // V1 event: Harvest(token, tokenAmount, wethAmount, protocolFeeAmount)
   const tokenAmount = event.params.tokenAmount
-  // burnAmount ignored (not in RewardSummary schema)
-  // Old contract: all WETH goes to protocol (no ipOwner/buyback split)
-  const wipToProtocol = wethAmount
+  const wethAmount = event.params.wethAmount
+  // V1 distribution: protocolFee -> treasury, rest -> stakingVault
+  const wipToProtocol = event.params.protocolFeeAmount
 
   const wipCollectedUSD = wipToUSD(wethAmount)
   const wipToProtocolUSD = wipToUSD(wipToProtocol)
