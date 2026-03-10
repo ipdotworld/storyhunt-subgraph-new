@@ -1,6 +1,6 @@
 import { BigInt } from '@graphprotocol/graph-ts'
 import { TokenDeployed, HarvestDistributed, AirdropClaimedUgc, AirdropClaimedHolder, TreasuryFlushed, Linked, ReferralFeePaid } from '../types/IPWorld/IPWorld'
-import { IpTokenLink, TokenDeployment } from '../types/schema'
+import { IpTokenLink, TokenDeployment, WalletAirdropClaim } from '../types/schema'
 import { getOrCreateTokenSummary, getOrCreateIpSummary, getOrCreateGlobalSummary, getOrCreateWalletAirdropSummary, getOrCreateWalletTokenAirdropSummary, getOrCreateTokenAirdropClaimSummary, totalRewardsUSD, ipOwnerRewardsUSD } from './reward-summary'
 import { wipToUSD, tokenToUSD } from '../utils/usdConversion'
 
@@ -195,6 +195,21 @@ export function handleAirdropClaimedUgc(event: AirdropClaimedUgc): void {
   tacs.ugcClaimCount = tacs.ugcClaimCount.plus(ONE)
   tacs.ugcLastClaimedTimestamp = event.block.timestamp
   tacs.save()
+
+  // Create individual claim record
+  const claimId = event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+  const claim = new WalletAirdropClaim(claimId)
+  claim.wallet = recipient
+  claim.token = token
+  claim.claimType = 'ugc'
+  claim.tokenAmount = event.params.tokenAmount
+  claim.wethAmount = event.params.wethAmount
+  claim.tokenAmountUSD = airdropTokenUSDDelta
+  claim.wethAmountUSD = airdropWipUSDDelta
+  claim.blockNumber = event.block.number
+  claim.timestamp = event.block.timestamp
+  claim.transactionHash = event.transaction.hash.toHexString()
+  claim.save()
 }
 
 export function handleAirdropClaimedHolder(event: AirdropClaimedHolder): void {
@@ -233,6 +248,21 @@ export function handleAirdropClaimedHolder(event: AirdropClaimedHolder): void {
   tacs.holderClaimCount = tacs.holderClaimCount.plus(ONE)
   tacs.holderLastClaimedTimestamp = event.block.timestamp
   tacs.save()
+
+  // Create individual claim record
+  const claimId = event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+  const claim = new WalletAirdropClaim(claimId)
+  claim.wallet = recipient
+  claim.token = token
+  claim.claimType = 'holder'
+  claim.tokenAmount = event.params.tokenAmount
+  claim.wethAmount = event.params.wethAmount
+  claim.tokenAmountUSD = airdropTokenUSDDelta
+  claim.wethAmountUSD = airdropWipUSDDelta
+  claim.blockNumber = event.block.number
+  claim.timestamp = event.block.timestamp
+  claim.transactionHash = event.transaction.hash.toHexString()
+  claim.save()
 }
 
 export function handleTreasuryFlushed(event: TreasuryFlushed): void {

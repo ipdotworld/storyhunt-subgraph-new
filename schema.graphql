@@ -663,3 +663,17 @@ type TokenAirdropClaimSummary @entity {
   holderClaimCount: BigInt!
   holderLastClaimedTimestamp: BigInt!
 }
+
+type WalletAirdropClaim @entity {
+  id: ID!                     # transactionHash
+  wallet: String!
+  token: String!
+  claimType: String!          # "ugc" | "holder"
+  tokenAmount: BigInt!
+  wethAmount: BigInt!
+  tokenAmountUSD: BigDecimal!
+  wethAmountUSD: BigDecimal!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: String!
+}

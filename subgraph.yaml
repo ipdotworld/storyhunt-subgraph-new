@@ -57,6 +57,7 @@ dataSources:
         - WalletAirdropSummary
         - WalletTokenAirdropSummary
         - TokenAirdropClaimSummary
+        - WalletAirdropClaim
       abis:
         - name: IPWorld
           file: ./abis/IPWorld.json
