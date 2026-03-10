@@ -70,6 +70,44 @@ export class AirdropClaimedUgc__Params {
   }
 }
 
+export class Harvest extends ethereum.Event {
+  get params(): Harvest__Params {
+    return new Harvest__Params(this);
+  }
+}
+
+export class Harvest__Params {
+  _event: Harvest;
+
+  constructor(event: Harvest) {
+    this._event = event;
+  }
+
+  get token(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get wethAmount(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get tokenAmount(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+
+  get burnAmount(): BigInt {
+    return this._event.parameters[3].value.toBigInt();
+  }
+
+  get buybackAmount(): BigInt {
+    return this._event.parameters[4].value.toBigInt();
+  }
+
+  get ipOwnerAmount(): BigInt {
+    return this._event.parameters[5].value.toBigInt();
+  }
+}
+
 export class Claimed extends ethereum.Event {
   get params(): Claimed__Params {
     return new Claimed__Params(this);
