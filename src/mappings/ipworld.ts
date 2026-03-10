@@ -1,5 +1,5 @@
 import { BigInt } from '@graphprotocol/graph-ts'
-import { TokenDeployed, Harvest, HarvestDistributed, AirdropClaimedUgc, AirdropClaimedHolder, TreasuryFlushed, Linked, ReferralFeePaid } from '../types/IPWorld/IPWorld'
+import { TokenDeployed, TokenDeployed1, Harvest, Harvest1, HarvestDistributed, AirdropClaimedUgc, AirdropClaimedHolder, TreasuryFlushed, Linked, ReferralFeePaid } from '../types/IPWorld/IPWorld'
 import { IpTokenLink, TokenDeployment, WalletAirdropClaim } from '../types/schema'
 import { getOrCreateTokenSummary, getOrCreateIpSummary, getOrCreateGlobalSummary, getOrCreateWalletAirdropSummary, getOrCreateWalletTokenAirdropSummary, getOrCreateTokenAirdropClaimSummary, totalRewardsUSD, ipOwnerRewardsUSD } from './reward-summary'
 import { wipToUSD, tokenToUSD } from '../utils/usdConversion'
@@ -28,6 +28,118 @@ export function handleTokenDeployed(event: TokenDeployed): void {
   deployment.allocationList = allocationList
 
   deployment.save()
+}
+
+export function handleTokenDeployedV1(event: TokenDeployed1): void {
+  const deployment = new TokenDeployment(event.params.token.toHexString())
+  deployment.blockNumber = event.block.number
+  deployment.timestamp = event.block.timestamp
+  deployment.transactionHash = event.transaction.hash.toHexString()
+  deployment.tokenCreator = event.params.tokenCreator.toHexString()
+  deployment.token = event.params.token.toHexString()
+  deployment.pool = event.params.pool.toHexString()
+
+  const startTickList: BigInt[] = []
+  startTickList.push(BigInt.fromI32(event.params.startTick))
+  deployment.startTickList = startTickList
+  deployment.allocationList = []
+
+  deployment.save()
+}
+
+export function handleHarvestV1(event: Harvest1): void {
+  const token = event.params.token.toHexString()
+
+  const wethAmount = event.params.wethAmount
+  const tokenAmount = event.params.tokenAmount
+  // burnAmount ignored (not in RewardSummary schema)
+  // Old contract: all WETH goes to protocol (no ipOwner/buyback split)
+  const wipToProtocol = wethAmount
+
+  const wipCollectedUSD = wipToUSD(wethAmount)
+  const wipToProtocolUSD = wipToUSD(wipToProtocol)
+  const tokenCollectedUSD = tokenToUSD(tokenAmount, token)
+
+  // Update TokenRewardSummary
+  const ts = getOrCreateTokenSummary(token)
+  ts.harvestCount = ts.harvestCount.plus(ONE)
+  ts.wipCollected = ts.wipCollected.plus(wethAmount)
+  ts.tokenCollected = ts.tokenCollected.plus(tokenAmount)
+  ts.wipToProtocol = ts.wipToProtocol.plus(wipToProtocol)
+  ts.wipCollectedUSD = ts.wipCollectedUSD.plus(wipCollectedUSD)
+  ts.tokenCollectedUSD = ts.tokenCollectedUSD.plus(tokenCollectedUSD)
+  ts.wipToProtocolUSD = ts.wipToProtocolUSD.plus(wipToProtocolUSD)
+  ts.totalRewardsUSD = totalRewardsUSD(
+    ts.vestingClaimedAmountUSD,
+    ts.wipToIpOwnerUSD,
+    ts.tokenToAirdropUSD,
+    ts.wipToAirdropUSD,
+    ts.tokenToIpTreasuryUSD,
+    ts.referralWipAmountUSD,
+    ts.wipToProtocolUSD,
+    ts.wipToBuybackUSD,
+  )
+  ts.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
+    ts.vestingClaimedAmountUSD,
+    ts.wipToIpOwnerUSD,
+  )
+  ts.lastUpdatedBlock = event.block.number
+  ts.lastUpdatedTimestamp = event.block.timestamp
+  ts.save()
+
+  if (ts.ipaId !== null) {
+    const is_ = getOrCreateIpSummary(ts.ipaId!)
+    is_.harvestCount = is_.harvestCount.plus(ONE)
+    is_.wipCollected = is_.wipCollected.plus(wethAmount)
+    is_.tokenCollected = is_.tokenCollected.plus(tokenAmount)
+    is_.wipToProtocol = is_.wipToProtocol.plus(wipToProtocol)
+    is_.wipCollectedUSD = is_.wipCollectedUSD.plus(wipCollectedUSD)
+    is_.tokenCollectedUSD = is_.tokenCollectedUSD.plus(tokenCollectedUSD)
+    is_.wipToProtocolUSD = is_.wipToProtocolUSD.plus(wipToProtocolUSD)
+    is_.totalRewardsUSD = totalRewardsUSD(
+      is_.vestingClaimedAmountUSD,
+      is_.wipToIpOwnerUSD,
+      is_.tokenToAirdropUSD,
+      is_.wipToAirdropUSD,
+      is_.tokenToIpTreasuryUSD,
+      is_.referralWipAmountUSD,
+      is_.wipToProtocolUSD,
+      is_.wipToBuybackUSD,
+    )
+    is_.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
+      is_.vestingClaimedAmountUSD,
+      is_.wipToIpOwnerUSD,
+    )
+    is_.lastUpdatedBlock = event.block.number
+    is_.lastUpdatedTimestamp = event.block.timestamp
+    is_.save()
+  }
+
+  const gs = getOrCreateGlobalSummary()
+  gs.harvestCount = gs.harvestCount.plus(ONE)
+  gs.wipCollected = gs.wipCollected.plus(wethAmount)
+  gs.tokenCollected = gs.tokenCollected.plus(tokenAmount)
+  gs.wipToProtocol = gs.wipToProtocol.plus(wipToProtocol)
+  gs.wipCollectedUSD = gs.wipCollectedUSD.plus(wipCollectedUSD)
+  gs.tokenCollectedUSD = gs.tokenCollectedUSD.plus(tokenCollectedUSD)
+  gs.wipToProtocolUSD = gs.wipToProtocolUSD.plus(wipToProtocolUSD)
+  gs.totalRewardsUSD = totalRewardsUSD(
+    gs.vestingClaimedAmountUSD,
+    gs.wipToIpOwnerUSD,
+    gs.tokenToAirdropUSD,
+    gs.wipToAirdropUSD,
+    gs.tokenToIpTreasuryUSD,
+    gs.referralWipAmountUSD,
+    gs.wipToProtocolUSD,
+    gs.wipToBuybackUSD,
+  )
+  gs.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
+    gs.vestingClaimedAmountUSD,
+    gs.wipToIpOwnerUSD,
+  )
+  gs.lastUpdatedBlock = event.block.number
+  gs.lastUpdatedTimestamp = event.block.timestamp
+  gs.save()
 }
 
 export function handleHarvest(event: Harvest): void {

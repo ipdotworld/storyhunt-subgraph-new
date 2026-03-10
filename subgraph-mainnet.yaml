@@ -61,15 +61,20 @@ dataSources:
         - name: IPWorld
           file: ./abis/IPWorld.json
       eventHandlers:
-        # Events on both contract versions
-        - event: TokenDeployed(indexed address,indexed address,indexed address,int24[],uint256[])
-          handler: handleTokenDeployed
+        # Shared events (all contract versions)
         - event: Linked(indexed address,indexed address)
           handler: handleLinked
-        # Old version event (pre-upgrade)
+        # V1 events (pre-6831525 implementation)
+        - event: TokenDeployed(indexed address,indexed address,indexed address,int24)
+          handler: handleTokenDeployedV1
+        - event: Harvest(indexed address,uint256,uint256,uint256)
+          handler: handleHarvestV1
+        # V2 events (current implementation, post-6831525)
+        - event: TokenDeployed(indexed address,indexed address,indexed address,int24[],uint256[])
+          handler: handleTokenDeployed
         - event: Harvest(indexed address,uint256,uint256,uint256,uint256,uint256)
           handler: handleHarvest
-        # New version events (post-upgrade)
+        # V3 events (post contract upgrade to new version)
         - event: HarvestDistributed(indexed address,uint256,uint256,uint256,uint256,uint256,uint256,uint256)
           handler: handleHarvestDistributed
         - event: AirdropClaimedUgc(indexed address,indexed address,uint256,uint256)
