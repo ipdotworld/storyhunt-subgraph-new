@@ -29,9 +29,6 @@ export function getIPPriceUSD(): BigDecimal {
   let sqrtPriceX96 = slot0Result.value.getSqrtPriceX96()
   if (sqrtPriceX96.isZero()) return ZERO_BD
 
-  // price (raw) = sqrtPriceX96^2 / 2^192
-  // token0=WIP(18dec), token1=USDC(6dec), USDC=$1 assumed
-  // IPPriceUSD = price_raw * 10^(18-6) = price_raw * 10^12
   let num = sqrtPriceX96.times(sqrtPriceX96).toBigDecimal()
   return num.div(Q192).times(DECIMAL_ADJUSTMENT)
 }

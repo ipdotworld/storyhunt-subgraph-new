@@ -60,6 +60,8 @@ dataSources:
       abis:
         - name: IPWorld
           file: ./abis/IPWorld.json
+        - name: Pool
+          file: ./abis/Pool.json
       eventHandlers:
         # Shared events (all contract versions)
         - event: Linked(indexed address,indexed address)
