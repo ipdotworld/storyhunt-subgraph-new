@@ -12,10 +12,10 @@ import {
 } from '../../utils/intervalUpdates'
 import {
   findNativePerToken,
-  getNativePriceInUSD,
   getTrackedAmountUSD,
   sqrtPriceX96ToTokenPrices,
 } from '../../utils/pricing'
+import { getIPPriceUSD } from '../../utils/usdConversion'
 
 // Helper function to compute the absolute value of a BigDecimal
 function bdAbs(x: BigDecimal): BigDecimal {
@@ -28,8 +28,6 @@ export function handleSwap(event: SwapEvent): void {
 
 export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfig = getSubgraphConfig()): void {
   const factoryAddress = subgraphConfig.factoryAddress
-  const stablecoinWrappedNativePoolAddress = subgraphConfig.stablecoinWrappedNativePoolAddress
-  const stablecoinIsToken0 = subgraphConfig.stablecoinIsToken0
   const wrappedNativeAddress = subgraphConfig.wrappedNativeAddress
   const stablecoinAddresses = subgraphConfig.stablecoinAddresses
   const minimumNativeLocked = subgraphConfig.minimumNativeLocked
@@ -127,7 +125,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     pool.save()
 
     // update USD pricing
-    bundle.IPPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolAddress, stablecoinIsToken0)
+    bundle.IPPriceUSD = getIPPriceUSD()
     bundle.save()
     token0.derivedIP = findNativePerToken(
       token0 as Token,

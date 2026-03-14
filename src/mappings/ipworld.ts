@@ -1,6 +1,7 @@
 import { BigInt } from '@graphprotocol/graph-ts'
 import { TokenDeployed, TokenDeployed1, Harvest, Harvest1, HarvestDistributed, AirdropClaimedUgc, AirdropClaimedHolder, TreasuryFlushed, Linked, ReferralFeePaid } from '../types/IPWorld/IPWorld'
 import { IpTokenLink, TokenDeployment, WalletAirdropClaim } from '../types/schema'
+import { Pool as PoolTemplate } from '../types/templates'
 import { getOrCreateTokenSummary, getOrCreateIpSummary, getOrCreateGlobalSummary, getOrCreateWalletAirdropSummary, getOrCreateWalletTokenAirdropSummary, getOrCreateTokenAirdropClaimSummary, totalRewardsUSD, ipOwnerRewardsUSD } from './reward-summary'
 import { wipToUSD, tokenToUSD } from '../utils/usdConversion'
 
@@ -28,6 +29,7 @@ export function handleTokenDeployed(event: TokenDeployed): void {
   deployment.allocationList = allocationList
 
   deployment.save()
+  PoolTemplate.create(event.params.pool)
 }
 
 export function handleTokenDeployedV1(event: TokenDeployed1): void {
@@ -45,6 +47,7 @@ export function handleTokenDeployedV1(event: TokenDeployed1): void {
   deployment.allocationList = []
 
   deployment.save()
+  PoolTemplate.create(event.params.pool)
 }
 
 export function handleHarvestV1(event: Harvest1): void {

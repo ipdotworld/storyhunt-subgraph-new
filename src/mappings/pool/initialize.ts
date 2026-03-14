@@ -4,15 +4,14 @@ import { Bundle, Pool, Token } from '../../types/schema'
 import { Initialize } from '../../types/templates/Pool/Pool'
 import { getSubgraphConfig, SubgraphConfig } from '../../utils/chains'
 import { updatePoolDayData } from '../../utils/intervalUpdates'
-import { findNativePerToken, getNativePriceInUSD } from '../../utils/pricing'
+import { findNativePerToken } from '../../utils/pricing'
+import { getIPPriceUSD } from '../../utils/usdConversion'
 
 export function handleInitialize(event: Initialize): void {
   handleInitializeHelper(event)
 }
 
 export function handleInitializeHelper(event: Initialize, subgraphConfig: SubgraphConfig = getSubgraphConfig()): void {
-  const stablecoinWrappedNativePoolAddress = subgraphConfig.stablecoinWrappedNativePoolAddress
-  const stablecoinIsToken0 = subgraphConfig.stablecoinIsToken0
   const wrappedNativeAddress = subgraphConfig.wrappedNativeAddress
   const stablecoinAddresses = subgraphConfig.stablecoinAddresses
   const minimumNativeLocked = subgraphConfig.minimumNativeLocked
@@ -29,7 +28,7 @@ export function handleInitializeHelper(event: Initialize, subgraphConfig: Subgra
 
   // update IP price now that prices could have changed
   const bundle = Bundle.load('1')!
-  bundle.IPPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolAddress, stablecoinIsToken0)
+  bundle.IPPriceUSD = getIPPriceUSD()
   bundle.save()
 
   updatePoolDayData(event)

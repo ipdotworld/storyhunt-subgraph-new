@@ -166,86 +166,6 @@ type Tick @entity {
   createdAtBlockNumber: BigInt!
 }
 
-type Position @entity {
-  # Positions created through NonfungiblePositionManager
-  # NFT token id
-  id: ID!
-  # owner of the NFT
-  owner: Bytes!
-  # pool position is within
-  pool: Pool!
-  # allow indexing by tokens
-  token0: Token!
-  # allow indexing by tokens
-  token1: Token!
-  # lower tick of the position
-  tickLower: Tick!
-  # upper tick of the position
-  tickUpper: Tick!
-  # total position liquidity
-  liquidity: BigInt!
-  # amount of token 0 ever deposited to position
-  depositedToken0: BigDecimal!
-  # amount of token 1 ever deposited to position
-  depositedToken1: BigDecimal!
-  # amount of token 0 ever withdrawn from position (without fees)
-  withdrawnToken0: BigDecimal!
-  # amount of token 1 ever withdrawn from position (without fees)
-  withdrawnToken1: BigDecimal!
-  # all time collected fees in token0
-  collectedFeesToken0: BigDecimal!
-  # all time collected fees in token1
-  collectedFeesToken1: BigDecimal!
-  # tx in which the position was initialized
-  transaction: Transaction!
-  # vars needed for fee computation
-  feeGrowthInside0LastX128: BigInt!
-  feeGrowthInside1LastX128: BigInt!
-  tickLowerInt: BigInt
-  tickUpperInt: BigInt
-  rewards: [PositionReward!] @derivedFrom(field: "position")
-}
-
-type PositionReward @entity {
-  id: ID! # position.id + token
-  position: Position!
-  token: Token! # Reward token address
-  earned: BigDecimal! # Accumulated reward amount for the token
-}
-
-type PositionSnapshot @entity {
-  # <NFT token id>#<block number>
-  id: ID!
-  # owner of the NFT
-  owner: Bytes!
-  # pool the position is within
-  pool: Pool!
-  # position of which the snap was taken of
-  position: Position!
-  # block in which the snap was created
-  blockNumber: BigInt!
-  # timestamp of block in which the snap was created
-  timestamp: BigInt!
-  # total position liquidity
-  liquidity: BigInt!
-  # amount of token 0 ever deposited to position
-  depositedToken0: BigDecimal!
-  # amount of token 1 ever deposited to position
-  depositedToken1: BigDecimal!
-  # amount of token 0 ever withdrawn from position (without fees)
-  withdrawnToken0: BigDecimal!
-  # amount of token 1 ever withdrawn from position (without fees)
-  withdrawnToken1: BigDecimal!
-  # all time collected fees in token0
-  collectedFeesToken0: BigDecimal!
-  # all time collected fees in token1
-  collectedFeesToken1: BigDecimal!
-  # tx in which the snapshot was initialized
-  transaction: Transaction!
-  # internal vars needed for fee computation
-  feeGrowthInside0LastX128: BigInt!
-  feeGrowthInside1LastX128: BigInt!
-}
 
 type Transaction @entity {
   # txn hash
@@ -261,7 +181,7 @@ type Transaction @entity {
   mints: [Mint]! @derivedFrom(field: "transaction")
   burns: [Burn]! @derivedFrom(field: "transaction")
   swaps: [Swap]! @derivedFrom(field: "transaction")
-  flashed: [Flash]! @derivedFrom(field: "transaction")
+
   collects: [Collect]! @derivedFrom(field: "transaction")
   poolId: String!
   from: String!
@@ -394,32 +314,6 @@ type Collect @entity {
   from: String
 }
 
-type Flash @entity {
-  # transaction hash + "-" + index in collect Transaction array
-  id: ID!
-  # pointer to txn
-  transaction: Transaction!
-  # timestamp of event
-  timestamp: BigInt!
-  # pool collect occured within
-  pool: Pool!
-  # sender of the flash
-  sender: Bytes!
-  # recipient of the flash
-  recipient: Bytes!
-  # amount of token0 flashed
-  amount0: BigDecimal!
-  # amount of token1 flashed
-  amount1: BigDecimal!
-  # derived amount based on available prices of tokens
-  amountUSD: BigDecimal!
-  # amount token0 paid for flash
-  amount0Paid: BigDecimal!
-  # amount token1 paid for flash
-  amount1Paid: BigDecimal!
-  # index within the txn
-  logIndex: BigInt
-}
 
 # Data accumulated and condensed into day stats for all of StoryHunt
 type StoryHuntDayData @entity {

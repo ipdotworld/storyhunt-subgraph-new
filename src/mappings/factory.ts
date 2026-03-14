@@ -4,7 +4,7 @@ import { populateEmptyPools } from '../backfill'
 import { PoolCreated } from '../types/Factory/Factory'
 import { Factory } from '../types/schema'
 import { Bundle, Pool, Token } from '../types/schema'
-import { Pool as PoolTemplate } from '../types/templates'
+
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol, fetchTokenTotalSupply } from '../utils/token'
 import { ADDRESS_ZERO, ONE_BI, ZERO_BD, ZERO_BI } from './../utils/constants'
@@ -159,8 +159,6 @@ export function handlePoolCreatedHelper(
   pool.from = event.transaction.from.toHexString()
 
   pool.save()
-  // create the tracked contract based on the template
-  PoolTemplate.create(event.params.pool)
   token0.poolCount = token0.poolCount.plus(ONE_BI)
   token1.poolCount = token1.poolCount.plus(ONE_BI)
   token0.neighbour = token0.neighbour.includes(token1.id) ? token0.neighbour : token0.neighbour.concat([token1.id])
