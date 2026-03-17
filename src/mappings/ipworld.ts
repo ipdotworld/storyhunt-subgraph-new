@@ -1,5 +1,6 @@
 import { Address, BigInt, log } from '@graphprotocol/graph-ts'
 import { TokenDeployed, TokenDeployed1, Harvest, Harvest1, HarvestDistributed, AirdropClaimedUgc, AirdropClaimedHolder, TreasuryFlushed, Linked, ReferralFeePaid } from '../types/IPWorld/IPWorld'
+import { ERC20 } from '../types/IPWorld/ERC20'
 import { Pool as PoolContract } from '../types/templates/Pool/Pool'
 import { IpTokenLink, Pool, Token, TokenDeployment, WalletAirdropClaim } from '../types/schema'
 import { Pool as PoolTemplate } from '../types/templates'
@@ -7,7 +8,7 @@ import { getOrCreateTokenSummary, getOrCreateIpSummary, getOrCreateGlobalSummary
 import { wipToUSD, tokenToUSD } from '../utils/usdConversion'
 import { getSubgraphConfig } from '../utils/chains'
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol, fetchTokenTotalSupply } from '../utils/token'
-import { ZERO_BD, ZERO_BI, ONE_BI } from '../utils/constants'
+import { ZERO_BD, ZERO_BI, ONE_BI, IPOWNER_VAULT_ADDRESS } from '../utils/constants'
 
 const ONE = BigInt.fromI32(1)
 
@@ -161,6 +162,37 @@ export function handleTokenDeployed(event: TokenDeployed): void {
 
   deployment.save()
 
+  // Calculate vestingPendingAmount from vault balance
+  const vaultAddress = Address.fromString(IPOWNER_VAULT_ADDRESS)
+  const tokenContract = ERC20.bind(event.params.token)
+  const vaultBalanceResult = tokenContract.try_balanceOf(vaultAddress)
+
+  let vestingPending = BigInt.fromI32(0)
+  if (!vaultBalanceResult.reverted && vaultBalanceResult.value.gt(BigInt.fromI32(0))) {
+    vestingPending = vaultBalanceResult.value
+  } else {
+    const totalSupplyResult = tokenContract.try_totalSupply()
+    if (!totalSupplyResult.reverted) {
+      const VESTING_PPM = BigInt.fromI32(30000)
+      const PRECISION = BigInt.fromI32(1000000)
+      vestingPending = totalSupplyResult.value.times(VESTING_PPM).div(PRECISION)
+    }
+  }
+
+  if (vestingPending.gt(BigInt.fromI32(0))) {
+    const ts = getOrCreateTokenSummary(event.params.token.toHexString())
+    ts.vestingPendingAmount = vestingPending
+    ts.lastUpdatedBlock = event.block.number
+    ts.lastUpdatedTimestamp = event.block.timestamp
+    ts.save()
+
+    const gs = getOrCreateGlobalSummary()
+    gs.vestingPendingAmount = gs.vestingPendingAmount.plus(vestingPending)
+    gs.lastUpdatedBlock = event.block.number
+    gs.lastUpdatedTimestamp = event.block.timestamp
+    gs.save()
+  }
+
   createPoolAndTokens(event.params.pool, event.block.timestamp, event.block.number, event.transaction.from)
   PoolTemplate.create(event.params.pool)
 }
@@ -180,6 +212,37 @@ export function handleTokenDeployedV1(event: TokenDeployed1): void {
   deployment.allocationList = []
 
   deployment.save()
+
+  // Calculate vestingPendingAmount from vault balance
+  const vaultAddress = Address.fromString(IPOWNER_VAULT_ADDRESS)
+  const tokenContract = ERC20.bind(event.params.token)
+  const vaultBalanceResult = tokenContract.try_balanceOf(vaultAddress)
+
+  let vestingPending = BigInt.fromI32(0)
+  if (!vaultBalanceResult.reverted && vaultBalanceResult.value.gt(BigInt.fromI32(0))) {
+    vestingPending = vaultBalanceResult.value
+  } else {
+    const totalSupplyResult = tokenContract.try_totalSupply()
+    if (!totalSupplyResult.reverted) {
+      const VESTING_PPM = BigInt.fromI32(30000)
+      const PRECISION = BigInt.fromI32(1000000)
+      vestingPending = totalSupplyResult.value.times(VESTING_PPM).div(PRECISION)
+    }
+  }
+
+  if (vestingPending.gt(BigInt.fromI32(0))) {
+    const ts = getOrCreateTokenSummary(event.params.token.toHexString())
+    ts.vestingPendingAmount = vestingPending
+    ts.lastUpdatedBlock = event.block.number
+    ts.lastUpdatedTimestamp = event.block.timestamp
+    ts.save()
+
+    const gs = getOrCreateGlobalSummary()
+    gs.vestingPendingAmount = gs.vestingPendingAmount.plus(vestingPending)
+    gs.lastUpdatedBlock = event.block.number
+    gs.lastUpdatedTimestamp = event.block.timestamp
+    gs.save()
+  }
 
   createPoolAndTokens(event.params.pool, event.block.timestamp, event.block.number, event.transaction.from)
   PoolTemplate.create(event.params.pool)
@@ -807,6 +870,7 @@ export function handleLinked(event: Linked): void {
   is_.wipToBuyback = is_.wipToBuyback.plus(ts.wipToBuyback)
   is_.wipToAirdrop = is_.wipToAirdrop.plus(ts.wipToAirdrop)
   is_.wipToProtocol = is_.wipToProtocol.plus(ts.wipToProtocol)
+  is_.vestingPendingAmount = is_.vestingPendingAmount.plus(ts.vestingPendingAmount)
   is_.referralWipAmount = is_.referralWipAmount.plus(ts.referralWipAmount)
   // Migrate USD values
   is_.vestingClaimedAmountUSD = is_.vestingClaimedAmountUSD.plus(ts.vestingClaimedAmountUSD)

@@ -81,6 +81,8 @@ export function handleVestingScheduleCreated(event: VestingScheduleCreated): voi
   const token = event.params.token.toHexString()
 
   const ts = getOrCreateTokenSummary(token)
+  const prevPending = ts.vestingPendingAmount
+  ts.vestingPendingAmount = BigInt.fromI32(0)
   ts.vestingTotalAmount = ts.vestingTotalAmount.plus(event.params.totalAmount)
   ts.vestingStart = event.params.startTime
   ts.vestingEnd = event.params.endTime
@@ -107,6 +109,8 @@ export function handleVestingScheduleCreated(event: VestingScheduleCreated): voi
     is_.vestingTotalAmount = is_.vestingTotalAmount.plus(event.params.totalAmount)
     is_.vestingStart = event.params.startTime
     is_.vestingEnd = event.params.endTime
+    const newPending = is_.vestingPendingAmount.minus(prevPending)
+    is_.vestingPendingAmount = newPending.gt(BigInt.fromI32(0)) ? newPending : BigInt.fromI32(0)
     is_.totalRewardsUSD = totalRewardsUSD(
       is_.vestingClaimedAmountUSD,
       is_.wipToIpOwnerUSD,
@@ -127,6 +131,8 @@ export function handleVestingScheduleCreated(event: VestingScheduleCreated): voi
   }
 
   const gs = getOrCreateGlobalSummary()
+  const gsNewPending = gs.vestingPendingAmount.minus(prevPending)
+  gs.vestingPendingAmount = gsNewPending.gt(BigInt.fromI32(0)) ? gsNewPending : BigInt.fromI32(0)
   gs.vestingTotalAmount = gs.vestingTotalAmount.plus(event.params.totalAmount)
   gs.totalRewardsUSD = totalRewardsUSD(
     gs.vestingClaimedAmountUSD,
