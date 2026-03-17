@@ -1,55 +1,28 @@
-specVersion: 0.0.4
+specVersion: 1.3.0
 description: StoryHunt - first IPFi Story Native AMM DEX to trade Tokens, NFTs and IPs. Anything and Everything.
 repository: https://github.com/ipdotworld/storyhunt-subgraph-new.git
 schema:
   file: ./schema.graphql
 features:
   - nonFatalErrors
-  - grafting
+indexerHints:
+  prune: auto
 dataSources:
-  - kind: ethereum/contract
-    name: Factory
-    network: story-aeneid
-    source:
-      abi: Factory
-      address: '0xB0d76e6C7aA7a78A00Af1A1083B4732a488700b4'
-      startBlock: 14781460
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.7
-      language: wasm/assemblyscript
-      file: ./src/mappings/factory.ts
-      entities:
-        - Pool
-        - Token
-      abis:
-        - name: Factory
-          file: ./abis/factory.json
-        - name: ERC20
-          file: ./abis/ERC20.json
-        - name: ERC20SymbolBytes
-          file: ./abis/ERC20SymbolBytes.json
-        - name: ERC20NameBytes
-          file: ./abis/ERC20NameBytes.json
-        - name: Pool
-          file: ./abis/pool.json
-      eventHandlers:
-        - event: PoolCreated(indexed address,indexed address,indexed uint24,int24,address)
-          handler: handlePoolCreated
-
   - kind: ethereum/contract
     name: IPWorld
     network: story-aeneid
     source:
       address: '0x77475A8ca1AfE6a6dc9E82B32210709054937099'
       abi: IPWorld
-      startBlock: 14781460
+      startBlock: 14781450
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./src/mappings/ipworld.ts
       entities:
+        - Pool
+        - Token
         - IpTokenLink
         - TokenRewardSummary
         - IpRewardSummary
@@ -61,6 +34,8 @@ dataSources:
       abis:
         - name: IPWorld
           file: ./abis/IPWorld.json
+        - name: Pool
+          file: ./abis/Pool.json
         - name: ERC20
           file: ./abis/ERC20.json
         - name: ERC20SymbolBytes
@@ -68,8 +43,13 @@ dataSources:
         - name: ERC20NameBytes
           file: ./abis/ERC20NameBytes.json
       eventHandlers:
+        # Shared events (all contract versions)
+        - event: Linked(indexed address,indexed address)
+          handler: handleLinked
+        # V2 events (current implementation)
         - event: TokenDeployed(indexed address,indexed address,indexed address,int24[],uint256[])
           handler: handleTokenDeployed
+        # V3 events (post contract upgrade)
         - event: HarvestDistributed(indexed address,uint256,uint256,uint256,uint256,uint256,uint256,uint256)
           handler: handleHarvestDistributed
         - event: AirdropClaimedUgc(indexed address,indexed address,uint256,uint256)
@@ -78,8 +58,6 @@ dataSources:
           handler: handleAirdropClaimedHolder
         - event: TreasuryFlushed(indexed address,indexed address,uint256)
           handler: handleTreasuryFlushed
-        - event: Linked(indexed address,indexed address)
-          handler: handleLinked
         - event: ReferralFeePaid(indexed address,indexed address,indexed address,uint256)
           handler: handleReferralFeePaid
 
@@ -89,7 +67,7 @@ dataSources:
     source:
       address: '0x276679F9e03d2E99350d407f964b5b42A3f01c73'
       abi: IPOwnerVault
-      startBlock: 14781460
+      startBlock: 14781450
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -129,8 +107,6 @@ templates:
       abis:
         - name: Pool
           file: ./abis/pool.json
-        - name: Factory
-          file: ./abis/factory.json
         - name: ERC20
           file: ./abis/ERC20.json
       eventHandlers:
@@ -140,7 +116,3 @@ templates:
           handler: handleSwap
         - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
           handler: handleMint
-        - event: Burn(indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
-          handler: handleBurn
-        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
-          handler: handleCollect
