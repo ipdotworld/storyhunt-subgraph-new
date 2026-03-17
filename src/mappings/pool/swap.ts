@@ -1,21 +1,17 @@
 import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 
-import { Bundle, Factory, Pool, Swap, Token } from '../../types/schema'
+import { Pool, Swap, Token } from '../../types/schema'
 import { Swap as SwapEvent } from '../../types/templates/Pool/Pool'
-import { convertTokenToDecimal, loadTransaction, safeDiv } from '../../utils'
+import { convertTokenToDecimal, safeDiv } from '../../utils'
 import { getSubgraphConfig, SubgraphConfig } from '../../utils/chains'
 import { ONE_BI, ZERO_BD, ZERO_BI } from '../../utils/constants'
-import {
-  updatePoolDayData,
-  updateStoryHuntDayData,
-  updateTokenMarketCap,
-} from '../../utils/intervalUpdates'
+import { updatePoolDayData } from '../../utils/intervalUpdates'
 import {
   findNativePerToken,
-  getNativePriceInUSD,
   getTrackedAmountUSD,
   sqrtPriceX96ToTokenPrices,
 } from '../../utils/pricing'
+import { getIPPriceUSD } from '../../utils/usdConversion'
 
 // Helper function to compute the absolute value of a BigDecimal
 function bdAbs(x: BigDecimal): BigDecimal {
@@ -27,22 +23,19 @@ export function handleSwap(event: SwapEvent): void {
 }
 
 export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfig = getSubgraphConfig()): void {
-  const factoryAddress = subgraphConfig.factoryAddress
-  const stablecoinWrappedNativePoolAddress = subgraphConfig.stablecoinWrappedNativePoolAddress
-  const stablecoinIsToken0 = subgraphConfig.stablecoinIsToken0
   const wrappedNativeAddress = subgraphConfig.wrappedNativeAddress
   const stablecoinAddresses = subgraphConfig.stablecoinAddresses
   const minimumNativeLocked = subgraphConfig.minimumNativeLocked
   const whitelistTokens = subgraphConfig.whitelistTokens
 
-  const bundle = Bundle.load('1')!
-  const factory = Factory.load(factoryAddress)!
   const pool = Pool.load(event.address.toHexString())!
 
   const token0 = Token.load(pool.token0)
   const token1 = Token.load(pool.token1)
 
   if (token0 && token1) {
+    const ipPriceUSD = getIPPriceUSD()
+
     // amounts - 0/1 are token deltas: can be positive or negative
     const amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals)
     const amount1 = convertTokenToDecimal(event.params.amount1, token1.decimals)
@@ -59,8 +52,8 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
 
     const amount0IP = amount0Abs.times(token0.derivedIP)
     const amount1IP = amount1Abs.times(token1.derivedIP)
-    const amount0USD = amount0IP.times(bundle.IPPriceUSD)
-    const amount1USD = amount1IP.times(bundle.IPPriceUSD)
+    const amount0USD = amount0IP.times(ipPriceUSD)
+    const amount1USD = amount1IP.times(ipPriceUSD)
 
     // get amount that should be tracked only - div 2 because cant count both input and output as volume
     const amountTotalUSDTracked = getTrackedAmountUSD(
@@ -69,24 +62,13 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       amount1Abs,
       token1 as Token,
       whitelistTokens,
+      ipPriceUSD,
     ).div(BigDecimal.fromString('2'))
-    const amountTotalIPTracked = safeDiv(amountTotalUSDTracked, bundle.IPPriceUSD)
+    const amountTotalIPTracked = safeDiv(amountTotalUSDTracked, ipPriceUSD)
     const amountTotalUSDUntracked = amount0USD.plus(amount1USD).div(BigDecimal.fromString('2'))
 
     const feesIP = amountTotalIPTracked.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
     const feesUSD = amountTotalUSDTracked.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
-
-    // global updates
-    factory.txCount = factory.txCount.plus(ONE_BI)
-    factory.totalVolumeIP = factory.totalVolumeIP.plus(amountTotalIPTracked)
-    factory.totalVolumeUSD = factory.totalVolumeUSD.plus(amountTotalUSDTracked)
-    factory.untrackedVolumeUSD = factory.untrackedVolumeUSD.plus(amountTotalUSDUntracked)
-    factory.totalFeesIP = factory.totalFeesIP.plus(feesIP)
-    factory.totalFeesUSD = factory.totalFeesUSD.plus(feesUSD)
-
-    // reset aggregate tvl before individual pool tvl updates
-    const currentPoolTvlIP = pool.totalValueLockedIP
-    factory.totalValueLockedIP = factory.totalValueLockedIP.minus(currentPoolTvlIP)
 
     // pool volume
     pool.volumeToken0 = pool.volumeToken0.plus(amount0Abs)
@@ -124,22 +106,21 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0 as Token, token1 as Token)
     pool.token0Price = prices[0]
     pool.token1Price = prices[1]
-    pool.save()
 
     // update USD pricing
-    bundle.IPPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolAddress, stablecoinIsToken0)
-    bundle.save()
     token0.derivedIP = findNativePerToken(
       token0 as Token,
       wrappedNativeAddress,
       stablecoinAddresses,
       minimumNativeLocked,
+      ipPriceUSD,
     )
     token1.derivedIP = findNativePerToken(
       token1 as Token,
       wrappedNativeAddress,
       stablecoinAddresses,
       minimumNativeLocked,
+      ipPriceUSD,
     )
 
     /**
@@ -148,26 +129,19 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     pool.totalValueLockedIP = pool.totalValueLockedToken0
       .times(token0.derivedIP)
       .plus(pool.totalValueLockedToken1.times(token1.derivedIP))
-    pool.totalValueLockedUSD = pool.totalValueLockedIP.times(bundle.IPPriceUSD)
+    pool.totalValueLockedUSD = pool.totalValueLockedIP.times(ipPriceUSD)
 
     const timeElapsed = event.block.timestamp.minus(pool.createdAtTimestamp)
     calculateFeeAPR(pool, feesIP, feesUSD, timeElapsed);
-    // let annualizedFees = safeDiv(feesIP.times(SECONDS_PER_YEAR), timeElapsed.toBigDecimal())
-    // let annualizedFeesUSD = safeDiv(feesUSD.times(SECONDS_PER_YEAR), timeElapsed.toBigDecimal())
-    // pool.feeAPRIP = safeDiv(annualizedFees, pool.totalValueLockedIP).times(BigDecimal.fromString('100'))
-    // pool.feeAPRUSD = safeDiv(annualizedFeesUSD, pool.totalValueLockedUSD).times(BigDecimal.fromString('100'))
 
-    factory.totalValueLockedIP = factory.totalValueLockedIP.plus(pool.totalValueLockedIP)
-    factory.totalValueLockedUSD = factory.totalValueLockedIP.times(bundle.IPPriceUSD)
-
-    token0.totalValueLockedUSD = token0.totalValueLocked.times(token0.derivedIP).times(bundle.IPPriceUSD)
-    token1.totalValueLockedUSD = token1.totalValueLocked.times(token1.derivedIP).times(bundle.IPPriceUSD)
+    token0.totalValueLockedUSD = token0.totalValueLocked.times(token0.derivedIP).times(ipPriceUSD)
+    token1.totalValueLockedUSD = token1.totalValueLocked.times(token1.derivedIP).times(ipPriceUSD)
 
     // create Swap event
-    const transaction = loadTransaction(event, pool.id)
-    const swap = new Swap(transaction.id + '-' + event.logIndex.toString())
-    swap.transaction = transaction.id
-    swap.timestamp = transaction.timestamp
+    const txHash = event.transaction.hash.toHexString()
+    const swap = new Swap(txHash + '-' + event.logIndex.toString())
+    swap.txHash = txHash
+    swap.timestamp = event.block.timestamp
     swap.pool = pool.id
     swap.token0 = pool.token0
     swap.token1 = pool.token1
@@ -182,13 +156,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     swap.logIndex = event.logIndex
 
     // interval data
-    const storyhuntDayData = updateStoryHuntDayData(event, factoryAddress)
     const poolDayData = updatePoolDayData(event)
-
-    // update volume metrics using validated volume
-    storyhuntDayData.volumeIP = storyhuntDayData.volumeIP.plus(amountTotalIPTracked)
-    storyhuntDayData.volumeUSD = storyhuntDayData.volumeUSD.plus(amountTotalUSDTracked)
-    storyhuntDayData.feesUSD = storyhuntDayData.feesUSD.plus(feesUSD)
 
     poolDayData.volumeUSD = poolDayData.volumeUSD.plus(amountTotalUSDTracked)
     poolDayData.volumeToken0 = poolDayData.volumeToken0.plus(amount0Abs)
@@ -196,9 +164,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     poolDayData.feesUSD = poolDayData.feesUSD.plus(feesUSD)
 
     swap.save()
-    storyhuntDayData.save()
     poolDayData.save()
-    factory.save()
     pool.save()
     token0.save()
     token1.save()
@@ -224,7 +190,4 @@ function calculateFeeAPR(pool: Pool, feesIP: BigDecimal, feesUSD: BigDecimal, ti
 
   pool.feeAPRIP = safeDiv(annualizedFeesIP, avgLiquidityIP).times(BigDecimal.fromString('100'));
   pool.feeAPRUSD = safeDiv(annualizedFeesUSD, avgLiquidityUSD).times(BigDecimal.fromString('100'));
-
-  // Save the pool with updated APRs
-  pool.save();
 }

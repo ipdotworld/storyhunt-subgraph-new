@@ -1,30 +1,33 @@
-import { VestedTokensAndEthClaimed, VestingScheduleCreated, ReleasedVested, EthDeposited } from '../types/IPOwnerVault/IPOwnerVault'
-import { ClaimEvent, VestingSchedule, VestingReleaseEvent, EthDepositEvent } from '../types/schema'
-import { getOrCreateTokenSummary, getOrCreateIpSummary, getOrCreateGlobalSummary } from './reward-summary'
+import { VestedTokensAndEthClaimed, VestingScheduleCreated, ReleasedVested } from '../types/IPOwnerVault/IPOwnerVault'
+import { getOrCreateTokenSummary, getOrCreateIpSummary, getOrCreateGlobalSummary, totalRewardsUSD, ipOwnerRewardsUSD } from './reward-summary'
+import { wipToUSD, tokenToUSD } from '../utils/usdConversion'
 
 import { BigInt } from '@graphprotocol/graph-ts'
 
 const ONE = BigInt.fromI32(1)
 
 export function handleVestedTokensAndEthClaimed(event: VestedTokensAndEthClaimed): void {
-  const claimEvent = new ClaimEvent(event.transaction.hash.toHexString() + '#' + event.logIndex.toString())
-
-  claimEvent.token = event.params.token.toHexString()
-  claimEvent.recipient = event.params.recipient.toHexString()
-  claimEvent.tokenAmount = event.params.tokenAmount
-  claimEvent.ethAmount = event.params.ethAmount
-  claimEvent.blockNumber = event.block.number
-  claimEvent.timestamp = event.block.timestamp
-  claimEvent.transactionHash = event.transaction.hash.toHexString()
-
-  claimEvent.save()
-
-  // Update summaries
   const token = event.params.token.toHexString()
+
+  const vestingClaimedUSDDelta = tokenToUSD(event.params.tokenAmount, token)
 
   const ts = getOrCreateTokenSummary(token)
   ts.vestingClaimedAmount = ts.vestingClaimedAmount.plus(event.params.tokenAmount)
-  ts.vestingClaimedEthAmount = ts.vestingClaimedEthAmount.plus(event.params.ethAmount)
+  ts.vestingClaimedAmountUSD = ts.vestingClaimedAmountUSD.plus(vestingClaimedUSDDelta)
+  ts.totalRewardsUSD = totalRewardsUSD(
+    ts.vestingClaimedAmountUSD,
+    ts.wipToIpOwnerUSD,
+    ts.tokenToAirdropUSD,
+    ts.wipToAirdropUSD,
+    ts.tokenToIpTreasuryUSD,
+    ts.referralWipAmountUSD,
+    ts.wipToProtocolUSD,
+    ts.wipToBuybackUSD,
+  )
+  ts.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
+    ts.vestingClaimedAmountUSD,
+    ts.wipToIpOwnerUSD,
+  )
   ts.lastUpdatedBlock = event.block.number
   ts.lastUpdatedTimestamp = event.block.timestamp
   ts.save()
@@ -32,7 +35,21 @@ export function handleVestedTokensAndEthClaimed(event: VestedTokensAndEthClaimed
   if (ts.ipaId !== null) {
     const is_ = getOrCreateIpSummary(ts.ipaId!)
     is_.vestingClaimedAmount = is_.vestingClaimedAmount.plus(event.params.tokenAmount)
-    is_.vestingClaimedEthAmount = is_.vestingClaimedEthAmount.plus(event.params.ethAmount)
+    is_.vestingClaimedAmountUSD = is_.vestingClaimedAmountUSD.plus(vestingClaimedUSDDelta)
+    is_.totalRewardsUSD = totalRewardsUSD(
+      is_.vestingClaimedAmountUSD,
+      is_.wipToIpOwnerUSD,
+      is_.tokenToAirdropUSD,
+      is_.wipToAirdropUSD,
+      is_.tokenToIpTreasuryUSD,
+      is_.referralWipAmountUSD,
+      is_.wipToProtocolUSD,
+      is_.wipToBuybackUSD,
+    )
+    is_.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
+      is_.vestingClaimedAmountUSD,
+      is_.wipToIpOwnerUSD,
+    )
     is_.lastUpdatedBlock = event.block.number
     is_.lastUpdatedTimestamp = event.block.timestamp
     is_.save()
@@ -40,30 +57,49 @@ export function handleVestedTokensAndEthClaimed(event: VestedTokensAndEthClaimed
 
   const gs = getOrCreateGlobalSummary()
   gs.vestingClaimedAmount = gs.vestingClaimedAmount.plus(event.params.tokenAmount)
-  gs.vestingClaimedEthAmount = gs.vestingClaimedEthAmount.plus(event.params.ethAmount)
+  gs.vestingClaimedAmountUSD = gs.vestingClaimedAmountUSD.plus(vestingClaimedUSDDelta)
+  gs.totalRewardsUSD = totalRewardsUSD(
+    gs.vestingClaimedAmountUSD,
+    gs.wipToIpOwnerUSD,
+    gs.tokenToAirdropUSD,
+    gs.wipToAirdropUSD,
+    gs.tokenToIpTreasuryUSD,
+    gs.referralWipAmountUSD,
+    gs.wipToProtocolUSD,
+    gs.wipToBuybackUSD,
+  )
+  gs.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
+    gs.vestingClaimedAmountUSD,
+    gs.wipToIpOwnerUSD,
+  )
   gs.lastUpdatedBlock = event.block.number
   gs.lastUpdatedTimestamp = event.block.timestamp
   gs.save()
 }
 
 export function handleVestingScheduleCreated(event: VestingScheduleCreated): void {
-  const vestingSchedule = new VestingSchedule(event.transaction.hash.toHexString() + '#' + event.logIndex.toString())
-
-  vestingSchedule.token = event.params.token.toHexString()
-  vestingSchedule.totalAmount = event.params.totalAmount
-  vestingSchedule.startTime = event.params.startTime
-  vestingSchedule.endTime = event.params.endTime
-  vestingSchedule.blockNumber = event.block.number
-  vestingSchedule.timestamp = event.block.timestamp
-  vestingSchedule.transactionHash = event.transaction.hash.toHexString()
-
-  vestingSchedule.save()
-
-  // Update summaries
   const token = event.params.token.toHexString()
 
   const ts = getOrCreateTokenSummary(token)
+  const prevPending = ts.vestingPendingAmount
+  ts.vestingPendingAmount = BigInt.fromI32(0)
   ts.vestingTotalAmount = ts.vestingTotalAmount.plus(event.params.totalAmount)
+  ts.vestingStart = event.params.startTime
+  ts.vestingEnd = event.params.endTime
+  ts.totalRewardsUSD = totalRewardsUSD(
+    ts.vestingClaimedAmountUSD,
+    ts.wipToIpOwnerUSD,
+    ts.tokenToAirdropUSD,
+    ts.wipToAirdropUSD,
+    ts.tokenToIpTreasuryUSD,
+    ts.referralWipAmountUSD,
+    ts.wipToProtocolUSD,
+    ts.wipToBuybackUSD,
+  )
+  ts.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
+    ts.vestingClaimedAmountUSD,
+    ts.wipToIpOwnerUSD,
+  )
   ts.lastUpdatedBlock = event.block.number
   ts.lastUpdatedTimestamp = event.block.timestamp
   ts.save()
@@ -71,35 +107,74 @@ export function handleVestingScheduleCreated(event: VestingScheduleCreated): voi
   if (ts.ipaId !== null) {
     const is_ = getOrCreateIpSummary(ts.ipaId!)
     is_.vestingTotalAmount = is_.vestingTotalAmount.plus(event.params.totalAmount)
+    is_.vestingStart = event.params.startTime
+    is_.vestingEnd = event.params.endTime
+    const newPending = is_.vestingPendingAmount.minus(prevPending)
+    is_.vestingPendingAmount = newPending.gt(BigInt.fromI32(0)) ? newPending : BigInt.fromI32(0)
+    is_.totalRewardsUSD = totalRewardsUSD(
+      is_.vestingClaimedAmountUSD,
+      is_.wipToIpOwnerUSD,
+      is_.tokenToAirdropUSD,
+      is_.wipToAirdropUSD,
+      is_.tokenToIpTreasuryUSD,
+      is_.referralWipAmountUSD,
+      is_.wipToProtocolUSD,
+      is_.wipToBuybackUSD,
+    )
+    is_.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
+      is_.vestingClaimedAmountUSD,
+      is_.wipToIpOwnerUSD,
+    )
     is_.lastUpdatedBlock = event.block.number
     is_.lastUpdatedTimestamp = event.block.timestamp
     is_.save()
   }
 
   const gs = getOrCreateGlobalSummary()
+  const gsNewPending = gs.vestingPendingAmount.minus(prevPending)
+  gs.vestingPendingAmount = gsNewPending.gt(BigInt.fromI32(0)) ? gsNewPending : BigInt.fromI32(0)
   gs.vestingTotalAmount = gs.vestingTotalAmount.plus(event.params.totalAmount)
+  gs.totalRewardsUSD = totalRewardsUSD(
+    gs.vestingClaimedAmountUSD,
+    gs.wipToIpOwnerUSD,
+    gs.tokenToAirdropUSD,
+    gs.wipToAirdropUSD,
+    gs.tokenToIpTreasuryUSD,
+    gs.referralWipAmountUSD,
+    gs.wipToProtocolUSD,
+    gs.wipToBuybackUSD,
+  )
+  gs.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
+    gs.vestingClaimedAmountUSD,
+    gs.wipToIpOwnerUSD,
+  )
   gs.lastUpdatedBlock = event.block.number
   gs.lastUpdatedTimestamp = event.block.timestamp
   gs.save()
 }
 
 export function handleReleasedVested(event: ReleasedVested): void {
-  const id = event.transaction.hash.toHexString() + '#' + event.logIndex.toString()
-  const entity = new VestingReleaseEvent(id)
-
-  entity.token = event.params.token.toHexString()
-  entity.amount = event.params.amount
-  entity.blockNumber = event.block.number
-  entity.timestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash.toHexString()
-
-  entity.save()
-
-  // Update summaries
   const token = event.params.token.toHexString()
+
+  const vestingClaimedUSDDelta = tokenToUSD(event.params.amount, token)
 
   const ts = getOrCreateTokenSummary(token)
   ts.vestingClaimedAmount = ts.vestingClaimedAmount.plus(event.params.amount)
+  ts.vestingClaimedAmountUSD = ts.vestingClaimedAmountUSD.plus(vestingClaimedUSDDelta)
+  ts.totalRewardsUSD = totalRewardsUSD(
+    ts.vestingClaimedAmountUSD,
+    ts.wipToIpOwnerUSD,
+    ts.tokenToAirdropUSD,
+    ts.wipToAirdropUSD,
+    ts.tokenToIpTreasuryUSD,
+    ts.referralWipAmountUSD,
+    ts.wipToProtocolUSD,
+    ts.wipToBuybackUSD,
+  )
+  ts.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
+    ts.vestingClaimedAmountUSD,
+    ts.wipToIpOwnerUSD,
+  )
   ts.lastUpdatedBlock = event.block.number
   ts.lastUpdatedTimestamp = event.block.timestamp
   ts.save()
@@ -107,6 +182,21 @@ export function handleReleasedVested(event: ReleasedVested): void {
   if (ts.ipaId !== null) {
     const is_ = getOrCreateIpSummary(ts.ipaId!)
     is_.vestingClaimedAmount = is_.vestingClaimedAmount.plus(event.params.amount)
+    is_.vestingClaimedAmountUSD = is_.vestingClaimedAmountUSD.plus(vestingClaimedUSDDelta)
+    is_.totalRewardsUSD = totalRewardsUSD(
+      is_.vestingClaimedAmountUSD,
+      is_.wipToIpOwnerUSD,
+      is_.tokenToAirdropUSD,
+      is_.wipToAirdropUSD,
+      is_.tokenToIpTreasuryUSD,
+      is_.referralWipAmountUSD,
+      is_.wipToProtocolUSD,
+      is_.wipToBuybackUSD,
+    )
+    is_.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
+      is_.vestingClaimedAmountUSD,
+      is_.wipToIpOwnerUSD,
+    )
     is_.lastUpdatedBlock = event.block.number
     is_.lastUpdatedTimestamp = event.block.timestamp
     is_.save()
@@ -114,42 +204,21 @@ export function handleReleasedVested(event: ReleasedVested): void {
 
   const gs = getOrCreateGlobalSummary()
   gs.vestingClaimedAmount = gs.vestingClaimedAmount.plus(event.params.amount)
-  gs.lastUpdatedBlock = event.block.number
-  gs.lastUpdatedTimestamp = event.block.timestamp
-  gs.save()
-}
-
-export function handleEthDeposited(event: EthDeposited): void {
-  const id = event.transaction.hash.toHexString() + '#' + event.logIndex.toString()
-  const entity = new EthDepositEvent(id)
-
-  entity.token = event.params.token.toHexString()
-  entity.amount = event.params.amount
-  entity.blockNumber = event.block.number
-  entity.timestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash.toHexString()
-
-  entity.save()
-
-  // Update summaries
-  const token = event.params.token.toHexString()
-
-  const ts = getOrCreateTokenSummary(token)
-  ts.ethDeposited = ts.ethDeposited.plus(event.params.amount)
-  ts.lastUpdatedBlock = event.block.number
-  ts.lastUpdatedTimestamp = event.block.timestamp
-  ts.save()
-
-  if (ts.ipaId !== null) {
-    const is_ = getOrCreateIpSummary(ts.ipaId!)
-    is_.ethDeposited = is_.ethDeposited.plus(event.params.amount)
-    is_.lastUpdatedBlock = event.block.number
-    is_.lastUpdatedTimestamp = event.block.timestamp
-    is_.save()
-  }
-
-  const gs = getOrCreateGlobalSummary()
-  gs.ethDeposited = gs.ethDeposited.plus(event.params.amount)
+  gs.vestingClaimedAmountUSD = gs.vestingClaimedAmountUSD.plus(vestingClaimedUSDDelta)
+  gs.totalRewardsUSD = totalRewardsUSD(
+    gs.vestingClaimedAmountUSD,
+    gs.wipToIpOwnerUSD,
+    gs.tokenToAirdropUSD,
+    gs.wipToAirdropUSD,
+    gs.tokenToIpTreasuryUSD,
+    gs.referralWipAmountUSD,
+    gs.wipToProtocolUSD,
+    gs.wipToBuybackUSD,
+  )
+  gs.ipOwnerRewardsUSD = ipOwnerRewardsUSD(
+    gs.vestingClaimedAmountUSD,
+    gs.wipToIpOwnerUSD,
+  )
   gs.lastUpdatedBlock = event.block.number
   gs.lastUpdatedTimestamp = event.block.timestamp
   gs.save()

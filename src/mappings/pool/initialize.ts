@@ -1,18 +1,17 @@
 import { BigInt } from '@graphprotocol/graph-ts'
 
-import { Bundle, Pool, Token } from '../../types/schema'
+import { Pool, Token } from '../../types/schema'
 import { Initialize } from '../../types/templates/Pool/Pool'
 import { getSubgraphConfig, SubgraphConfig } from '../../utils/chains'
 import { updatePoolDayData } from '../../utils/intervalUpdates'
-import { findNativePerToken, getNativePriceInUSD } from '../../utils/pricing'
+import { findNativePerToken } from '../../utils/pricing'
+import { getIPPriceUSD } from '../../utils/usdConversion'
 
 export function handleInitialize(event: Initialize): void {
   handleInitializeHelper(event)
 }
 
 export function handleInitializeHelper(event: Initialize, subgraphConfig: SubgraphConfig = getSubgraphConfig()): void {
-  const stablecoinWrappedNativePoolAddress = subgraphConfig.stablecoinWrappedNativePoolAddress
-  const stablecoinIsToken0 = subgraphConfig.stablecoinIsToken0
   const wrappedNativeAddress = subgraphConfig.wrappedNativeAddress
   const stablecoinAddresses = subgraphConfig.stablecoinAddresses
   const minimumNativeLocked = subgraphConfig.minimumNativeLocked
@@ -27,26 +26,24 @@ export function handleInitializeHelper(event: Initialize, subgraphConfig: Subgra
   const token0 = Token.load(pool.token0)
   const token1 = Token.load(pool.token1)
 
-  // update IP price now that prices could have changed
-  const bundle = Bundle.load('1')!
-  bundle.IPPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolAddress, stablecoinIsToken0)
-  bundle.save()
-
   updatePoolDayData(event)
 
   // update token prices
   if (token0 && token1) {
+    const ipPriceUSD = getIPPriceUSD()
     token0.derivedIP = findNativePerToken(
       token0 as Token,
       wrappedNativeAddress,
       stablecoinAddresses,
       minimumNativeLocked,
+      ipPriceUSD,
     )
     token1.derivedIP = findNativePerToken(
       token1 as Token,
       wrappedNativeAddress,
       stablecoinAddresses,
       minimumNativeLocked,
+      ipPriceUSD,
     )
     token0.save()
     token1.save()

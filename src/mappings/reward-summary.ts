@@ -1,7 +1,8 @@
-import { BigInt } from '@graphprotocol/graph-ts'
-import { TokenRewardSummary, IpRewardSummary, GlobalRewardSummary } from '../types/schema'
+import { BigInt, BigDecimal } from '@graphprotocol/graph-ts'
+import { TokenRewardSummary, IpRewardSummary, GlobalRewardSummary, WalletAirdropSummary, WalletTokenAirdropSummary, TokenAirdropClaimSummary } from '../types/schema'
 
 const ZERO = BigInt.fromI32(0)
+const ZERO_BD = BigDecimal.fromString('0')
 
 export function getOrCreateTokenSummary(token: string): TokenRewardSummary {
   let s = TokenRewardSummary.load(token)
@@ -10,7 +11,9 @@ export function getOrCreateTokenSummary(token: string): TokenRewardSummary {
     s.ipaId = null
     s.vestingTotalAmount = ZERO
     s.vestingClaimedAmount = ZERO
-    s.vestingClaimedEthAmount = ZERO
+    s.vestingStart = ZERO
+    s.vestingEnd = ZERO
+    s.vestingPendingAmount = ZERO
     s.harvestCount = ZERO
     s.tokenCollected = ZERO
     s.tokenToIpTreasury = ZERO
@@ -20,15 +23,23 @@ export function getOrCreateTokenSummary(token: string): TokenRewardSummary {
     s.wipToBuyback = ZERO
     s.wipToAirdrop = ZERO
     s.wipToProtocol = ZERO
-    s.treasuryFlushedAmount = ZERO
-    s.airdropTokenClaimed = ZERO
-    s.airdropWipClaimed = ZERO
-    s.airdropClaimCount = ZERO
-    s.lpFeeWeth = ZERO
-    s.lpFeeToken = ZERO
-    s.ethDeposited = ZERO
     s.lastUpdatedBlock = ZERO
     s.lastUpdatedTimestamp = ZERO
+    // USD fields
+    s.vestingClaimedAmountUSD = ZERO_BD
+    s.tokenCollectedUSD = ZERO_BD
+    s.tokenToIpTreasuryUSD = ZERO_BD
+    s.tokenToAirdropUSD = ZERO_BD
+    s.wipCollectedUSD = ZERO_BD
+    s.wipToIpOwnerUSD = ZERO_BD
+    s.wipToBuybackUSD = ZERO_BD
+    s.wipToAirdropUSD = ZERO_BD
+    s.wipToProtocolUSD = ZERO_BD
+    s.totalRewardsUSD = ZERO_BD
+    s.ipOwnerRewardsUSD = ZERO_BD
+    // Referral fields
+    s.referralWipAmount = ZERO
+    s.referralWipAmountUSD = ZERO_BD
   }
   return s as TokenRewardSummary
 }
@@ -40,7 +51,9 @@ export function getOrCreateIpSummary(ipaId: string): IpRewardSummary {
     s.tokenCount = ZERO
     s.vestingTotalAmount = ZERO
     s.vestingClaimedAmount = ZERO
-    s.vestingClaimedEthAmount = ZERO
+    s.vestingStart = ZERO
+    s.vestingEnd = ZERO
+    s.vestingPendingAmount = ZERO
     s.harvestCount = ZERO
     s.tokenCollected = ZERO
     s.tokenToIpTreasury = ZERO
@@ -50,15 +63,23 @@ export function getOrCreateIpSummary(ipaId: string): IpRewardSummary {
     s.wipToBuyback = ZERO
     s.wipToAirdrop = ZERO
     s.wipToProtocol = ZERO
-    s.treasuryFlushedAmount = ZERO
-    s.airdropTokenClaimed = ZERO
-    s.airdropWipClaimed = ZERO
-    s.airdropClaimCount = ZERO
-    s.lpFeeWeth = ZERO
-    s.lpFeeToken = ZERO
-    s.ethDeposited = ZERO
     s.lastUpdatedBlock = ZERO
     s.lastUpdatedTimestamp = ZERO
+    // USD fields
+    s.vestingClaimedAmountUSD = ZERO_BD
+    s.tokenCollectedUSD = ZERO_BD
+    s.tokenToIpTreasuryUSD = ZERO_BD
+    s.tokenToAirdropUSD = ZERO_BD
+    s.wipCollectedUSD = ZERO_BD
+    s.wipToIpOwnerUSD = ZERO_BD
+    s.wipToBuybackUSD = ZERO_BD
+    s.wipToAirdropUSD = ZERO_BD
+    s.wipToProtocolUSD = ZERO_BD
+    s.totalRewardsUSD = ZERO_BD
+    s.ipOwnerRewardsUSD = ZERO_BD
+    // Referral fields
+    s.referralWipAmount = ZERO
+    s.referralWipAmountUSD = ZERO_BD
   }
   return s as IpRewardSummary
 }
@@ -69,7 +90,7 @@ export function getOrCreateGlobalSummary(): GlobalRewardSummary {
     s = new GlobalRewardSummary('global')
     s.vestingTotalAmount = ZERO
     s.vestingClaimedAmount = ZERO
-    s.vestingClaimedEthAmount = ZERO
+    s.vestingPendingAmount = ZERO
     s.harvestCount = ZERO
     s.tokenCollected = ZERO
     s.tokenToIpTreasury = ZERO
@@ -79,15 +100,120 @@ export function getOrCreateGlobalSummary(): GlobalRewardSummary {
     s.wipToBuyback = ZERO
     s.wipToAirdrop = ZERO
     s.wipToProtocol = ZERO
-    s.treasuryFlushedAmount = ZERO
-    s.airdropTokenClaimed = ZERO
-    s.airdropWipClaimed = ZERO
-    s.airdropClaimCount = ZERO
-    s.lpFeeWeth = ZERO
-    s.lpFeeToken = ZERO
-    s.ethDeposited = ZERO
     s.lastUpdatedBlock = ZERO
     s.lastUpdatedTimestamp = ZERO
+    // USD fields
+    s.vestingClaimedAmountUSD = ZERO_BD
+    s.tokenCollectedUSD = ZERO_BD
+    s.tokenToIpTreasuryUSD = ZERO_BD
+    s.tokenToAirdropUSD = ZERO_BD
+    s.wipCollectedUSD = ZERO_BD
+    s.wipToIpOwnerUSD = ZERO_BD
+    s.wipToBuybackUSD = ZERO_BD
+    s.wipToAirdropUSD = ZERO_BD
+    s.wipToProtocolUSD = ZERO_BD
+    s.totalRewardsUSD = ZERO_BD
+    s.ipOwnerRewardsUSD = ZERO_BD
+    // Referral fields
+    s.referralWipAmount = ZERO
+    s.referralWipAmountUSD = ZERO_BD
   }
   return s as GlobalRewardSummary
+}
+
+export function getOrCreateWalletAirdropSummary(wallet: string): WalletAirdropSummary {
+  let s = WalletAirdropSummary.load(wallet)
+  if (s === null) {
+    s = new WalletAirdropSummary(wallet)
+    // UGC fields
+    s.ugcMemeTokenClaimed = ZERO
+    s.ugcMemeTokenClaimedUSD = ZERO_BD
+    s.ugcWipClaimed = ZERO
+    s.ugcWipClaimedUSD = ZERO_BD
+    s.ugcClaimCount = ZERO
+    s.ugcLastClaimedTimestamp = ZERO
+    // Holder fields
+    s.holderMemeTokenClaimed = ZERO
+    s.holderMemeTokenClaimedUSD = ZERO_BD
+    s.holderWipClaimed = ZERO
+    s.holderWipClaimedUSD = ZERO_BD
+    s.holderClaimCount = ZERO
+    s.holderLastClaimedTimestamp = ZERO
+  }
+  return s as WalletAirdropSummary
+}
+
+export function getOrCreateTokenAirdropClaimSummary(token: string): TokenAirdropClaimSummary {
+  let s = TokenAirdropClaimSummary.load(token)
+  if (s === null) {
+    s = new TokenAirdropClaimSummary(token)
+    // UGC fields
+    s.ugcMemeTokenClaimed = ZERO
+    s.ugcMemeTokenClaimedUSD = ZERO_BD
+    s.ugcWipClaimed = ZERO
+    s.ugcWipClaimedUSD = ZERO_BD
+    s.ugcClaimCount = ZERO
+    s.ugcLastClaimedTimestamp = ZERO
+    // Holder fields
+    s.holderMemeTokenClaimed = ZERO
+    s.holderMemeTokenClaimedUSD = ZERO_BD
+    s.holderWipClaimed = ZERO
+    s.holderWipClaimedUSD = ZERO_BD
+    s.holderClaimCount = ZERO
+    s.holderLastClaimedTimestamp = ZERO
+  }
+  return s as TokenAirdropClaimSummary
+}
+
+export function getOrCreateWalletTokenAirdropSummary(wallet: string, token: string): WalletTokenAirdropSummary {
+  let id = wallet + '-' + token
+  let s = WalletTokenAirdropSummary.load(id)
+  if (s === null) {
+    s = new WalletTokenAirdropSummary(id)
+    s.wallet = wallet
+    s.token = token
+    // UGC fields
+    s.ugcMemeTokenClaimed = ZERO
+    s.ugcMemeTokenClaimedUSD = ZERO_BD
+    s.ugcWipClaimed = ZERO
+    s.ugcWipClaimedUSD = ZERO_BD
+    s.ugcClaimCount = ZERO
+    s.ugcLastClaimedTimestamp = ZERO
+    // Holder fields
+    s.holderMemeTokenClaimed = ZERO
+    s.holderMemeTokenClaimedUSD = ZERO_BD
+    s.holderWipClaimed = ZERO
+    s.holderWipClaimedUSD = ZERO_BD
+    s.holderClaimCount = ZERO
+    s.holderLastClaimedTimestamp = ZERO
+  }
+  return s as WalletTokenAirdropSummary
+}
+
+export function totalRewardsUSD(
+  vestingClaimedAmountUSD: BigDecimal,
+  wipToIpOwnerUSD: BigDecimal,
+  tokenToAirdropUSD: BigDecimal,
+  wipToAirdropUSD: BigDecimal,
+  tokenToIpTreasuryUSD: BigDecimal,
+  referralWipAmountUSD: BigDecimal,
+  wipToProtocolUSD: BigDecimal,
+  wipToBuybackUSD: BigDecimal,
+): BigDecimal {
+  return vestingClaimedAmountUSD
+    .plus(wipToIpOwnerUSD)
+    .plus(tokenToAirdropUSD)
+    .plus(wipToAirdropUSD)
+    .plus(tokenToIpTreasuryUSD)
+    .plus(referralWipAmountUSD)
+    .plus(wipToProtocolUSD)
+    .plus(wipToBuybackUSD)
+}
+
+export function ipOwnerRewardsUSD(
+  vestingClaimedAmountUSD: BigDecimal,
+  wipToIpOwnerUSD: BigDecimal,
+): BigDecimal {
+  return vestingClaimedAmountUSD
+    .plus(wipToIpOwnerUSD)
 }

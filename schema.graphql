@@ -1,64 +1,4 @@
-type CreatedToken @entity {
-  id: ID!
-  owner: String!
-  name: String!
-  symbol: String!
-  initialSupply: BigInt!
-  decimals: Int!
-}
-
-type TokenDeployment @entity {
-  id: ID!
-  block: BigInt!
-  blockNumber: BigInt!
-  timestamp: BigInt!
-  transactionHash: String!
-  contractId: String!
-  tokenCreator: String!
-  token: String!
-  pool: String!
-  startTickList: [BigInt!]!
-  allocationList: [BigInt!]!
-}
-
-type Factory @entity {
-  # factory address
-  id: ID!
-  # amount of pools created
-  poolCount: BigInt!
-  # amoutn of transactions all time
-  txCount: BigInt!
-  # total volume all time in derived USD
-  totalVolumeUSD: BigDecimal!
-  # total volume all time in derived IP
-  totalVolumeIP: BigDecimal!
-  # total swap fees all time in USD
-  totalFeesUSD: BigDecimal!
-  # total swap fees all time in USD
-  totalFeesIP: BigDecimal!
-  # all volume even through less reliable USD values
-  untrackedVolumeUSD: BigDecimal!
-  # TVL derived in USD
-  totalValueLockedUSD: BigDecimal!
-  # TVL derived in IP
-  totalValueLockedIP: BigDecimal!
-  # TVL derived in USD untracked
-  totalValueLockedUSDUntracked: BigDecimal!
-  # TVL derived in IP untracked
-  totalValueLockedIPUntracked: BigDecimal!
-
-  # current owner of the factory
-  owner: ID!
-}
-
-# stores for USD calculations
-type Bundle @entity {
-  id: ID!
-  # price of IP in usd
-  IPPriceUSD: BigDecimal!
-}
-
-type Token @entity {
+type Token @entity(immutable: false) {
   # token address
   id: ID!
   # token symbol
@@ -97,7 +37,7 @@ type Token @entity {
   neighbour: [Token!]!
 }
 
-type Pool @entity {
+type Pool @entity(immutable: false) {
   # pool address
   id: ID!
   # creation
@@ -155,218 +95,18 @@ type Pool @entity {
   # daily snapshots of pool data
   poolDayData: [PoolDayData!]! @derivedFrom(field: "pool")
   # derived fields
-  mints: [Mint!]! @derivedFrom(field: "pool")
-  burns: [Burn!]! @derivedFrom(field: "pool")
   swaps: [Swap!]! @derivedFrom(field: "pool")
-  collects: [Collect!]! @derivedFrom(field: "pool")
-  ticks: [Tick!]! @derivedFrom(field: "pool")
   from: String
   feesIP: BigDecimal!
   feeAPRUSD: BigDecimal!
   feeAPRIP: BigDecimal!
-  lmPool: LMPool
 }
 
-type Tick @entity {
-  # format: <pool address>#<tick index>
-  id: ID!
-  # pool address
-  poolAddress: String
-  # tick index
-  tickIdx: BigInt!
-  # pointer to pool
-  pool: Pool!
-  # total liquidity pool has as tick lower or upper
-  liquidityGross: BigInt!
-  # how much liquidity changes when tick crossed
-  liquidityNet: BigInt!
-  # calculated price of token0 of tick within this pool - constant
-  price0: BigDecimal!
-  # calculated price of token1 of tick within this pool - constant
-  price1: BigDecimal!
-  # created time
-  createdAtTimestamp: BigInt!
-  # created block
-  createdAtBlockNumber: BigInt!
-}
-
-type Position @entity {
-  # Positions created through NonfungiblePositionManager
-  # NFT token id
-  id: ID!
-  # owner of the NFT
-  owner: Bytes!
-  # pool position is within
-  pool: Pool!
-  # allow indexing by tokens
-  token0: Token!
-  # allow indexing by tokens
-  token1: Token!
-  # lower tick of the position
-  tickLower: Tick!
-  # upper tick of the position
-  tickUpper: Tick!
-  # total position liquidity
-  liquidity: BigInt!
-  # amount of token 0 ever deposited to position
-  depositedToken0: BigDecimal!
-  # amount of token 1 ever deposited to position
-  depositedToken1: BigDecimal!
-  # amount of token 0 ever withdrawn from position (without fees)
-  withdrawnToken0: BigDecimal!
-  # amount of token 1 ever withdrawn from position (without fees)
-  withdrawnToken1: BigDecimal!
-  # all time collected fees in token0
-  collectedFeesToken0: BigDecimal!
-  # all time collected fees in token1
-  collectedFeesToken1: BigDecimal!
-  # tx in which the position was initialized
-  transaction: Transaction!
-  # vars needed for fee computation
-  feeGrowthInside0LastX128: BigInt!
-  feeGrowthInside1LastX128: BigInt!
-  tickLowerInt: BigInt
-  tickUpperInt: BigInt
-  lmPool: LMPool
-  staker: Bytes
-  isStaked: Boolean!
-  rewards: [PositionReward!] @derivedFrom(field: "position")
-}
-
-type PositionReward @entity {
-  id: ID! # position.id + token
-  position: Position!
-  token: Token! # Reward token address
-  earned: BigDecimal! # Accumulated reward amount for the token
-}
-
-type PositionSnapshot @entity {
-  # <NFT token id>#<block number>
-  id: ID!
-  # owner of the NFT
-  owner: Bytes!
-  # pool the position is within
-  pool: Pool!
-  # position of which the snap was taken of
-  position: Position!
-  # block in which the snap was created
-  blockNumber: BigInt!
-  # timestamp of block in which the snap was created
-  timestamp: BigInt!
-  # total position liquidity
-  liquidity: BigInt!
-  # amount of token 0 ever deposited to position
-  depositedToken0: BigDecimal!
-  # amount of token 1 ever deposited to position
-  depositedToken1: BigDecimal!
-  # amount of token 0 ever withdrawn from position (without fees)
-  withdrawnToken0: BigDecimal!
-  # amount of token 1 ever withdrawn from position (without fees)
-  withdrawnToken1: BigDecimal!
-  # all time collected fees in token0
-  collectedFeesToken0: BigDecimal!
-  # all time collected fees in token1
-  collectedFeesToken1: BigDecimal!
-  # tx in which the snapshot was initialized
-  transaction: Transaction!
-  # internal vars needed for fee computation
-  feeGrowthInside0LastX128: BigInt!
-  feeGrowthInside1LastX128: BigInt!
-}
-
-type Transaction @entity {
-  # txn hash
-  id: ID!
-  # block txn was included in
-  blockNumber: BigInt!
-  # timestamp txn was confirmed
-  timestamp: BigInt!
-  # gas used during txn execution
-  gasUsed: BigInt!
-  gasPrice: BigInt!
-  # derived values
-  mints: [Mint]! @derivedFrom(field: "transaction")
-  burns: [Burn]! @derivedFrom(field: "transaction")
-  swaps: [Swap]! @derivedFrom(field: "transaction")
-  flashed: [Flash]! @derivedFrom(field: "transaction")
-  collects: [Collect]! @derivedFrom(field: "transaction")
-  poolId: String!
-  from: String!
-}
-
-type Mint @entity {
-  # transaction hash + "#" + index in mints Transaction array
-  id: ID!
-  # which txn the mint was included in
-  transaction: Transaction!
-  # time of txn
-  timestamp: BigInt!
-  # pool position is within
-  pool: Pool!
-  # allow indexing by tokens
-  token0: Token!
-  # allow indexing by tokens
-  token1: Token!
-  # owner of position where liquidity minted to
-  owner: Bytes!
-  # the address that minted the liquidity
-  sender: Bytes
-  # txn origin
-  origin: Bytes! # the EOA that initiated the txn
-  # amount of liquidity minted
-  amount: BigInt!
-  # amount of token 0 minted
-  amount0: BigDecimal!
-  # amount of token 1 minted
-  amount1: BigDecimal!
-  # derived amount based on available prices of tokens
-  amountUSD: BigDecimal
-  # lower tick of the position
-  tickLower: BigInt!
-  # upper tick of the position
-  tickUpper: BigInt!
-  # order within the txn
-  logIndex: BigInt
-}
-
-type Burn @entity {
-  # transaction hash + "#" + index in mints Transaction array
-  id: ID!
-  # txn burn was included in
-  transaction: Transaction!
-  # pool position is within
-  pool: Pool!
-  # allow indexing by tokens
-  token0: Token!
-  # allow indexing by tokens
-  token1: Token!
-  # need this to pull recent txns for specific token or pool
-  timestamp: BigInt!
-  # owner of position where liquidity was burned
-  owner: Bytes
-  # txn origin
-  origin: Bytes! # the EOA that initiated the txn
-  # amouny of liquidity burned
-  amount: BigInt!
-  # amount of token 0 burned
-  amount0: BigDecimal!
-  # amount of token 1 burned
-  amount1: BigDecimal!
-  # derived amount based on available prices of tokens
-  amountUSD: BigDecimal
-  # lower tick of position
-  tickLower: BigInt!
-  # upper tick of position
-  tickUpper: BigInt!
-  # position within the transactions
-  logIndex: BigInt
-}
-
-type Swap @entity {
+type Swap @entity(immutable: true) {
   # transaction hash + "#" + index in swaps Transaction array
   id: ID!
-  # pointer to transaction
-  transaction: Transaction!
+  # transaction hash
+  txHash: String!
   # timestamp of transaction
   timestamp: BigInt!
   # pool swap occured within
@@ -395,81 +135,8 @@ type Swap @entity {
   logIndex: BigInt
 }
 
-type Collect @entity {
-  # transaction hash + "#" + index in collect Transaction array
-  id: ID!
-  # pointer to txn
-  transaction: Transaction!
-  # timestamp of event
-  timestamp: BigInt!
-  # pool collect occured within
-  pool: Pool!
-  # owner of position collect was performed on
-  owner: Bytes
-  # amount of token0 collected
-  amount0: BigDecimal!
-  # amount of token1 collected
-  amount1: BigDecimal!
-  # derived amount based on available prices of tokens
-  amountUSD: BigDecimal
-  # lower tick of position
-  tickLower: BigInt!
-  # uppper tick of position
-  tickUpper: BigInt!
-  # index within the txn
-  logIndex: BigInt
-  from: String
-}
-
-type Flash @entity {
-  # transaction hash + "-" + index in collect Transaction array
-  id: ID!
-  # pointer to txn
-  transaction: Transaction!
-  # timestamp of event
-  timestamp: BigInt!
-  # pool collect occured within
-  pool: Pool!
-  # sender of the flash
-  sender: Bytes!
-  # recipient of the flash
-  recipient: Bytes!
-  # amount of token0 flashed
-  amount0: BigDecimal!
-  # amount of token1 flashed
-  amount1: BigDecimal!
-  # derived amount based on available prices of tokens
-  amountUSD: BigDecimal!
-  # amount token0 paid for flash
-  amount0Paid: BigDecimal!
-  # amount token1 paid for flash
-  amount1Paid: BigDecimal!
-  # index within the txn
-  logIndex: BigInt
-}
-
-# Data accumulated and condensed into day stats for all of StoryHunt
-type StoryHuntDayData @entity {
-  # timestamp rounded to current day by dividing by 86400
-  id: ID!
-  # timestamp rounded to current day by dividing by 86400
-  date: Int!
-  # total daily volume in StoryHunt derived in terms of IP
-  volumeIP: BigDecimal!
-  # total daily volume in StoryHunt derived in terms of USD
-  volumeUSD: BigDecimal!
-  # total daily volume in StoryHunt derived in terms of USD untracked
-  volumeUSDUntracked: BigDecimal!
-  # fees in USD
-  feesUSD: BigDecimal!
-  # number of daily transactions
-  txCount: BigInt!
-  # tvl in terms of USD
-  tvlUSD: BigDecimal!
-}
-
 # Data accumulated and condensed into day stats for each pool
-type PoolDayData @entity {
+type PoolDayData @entity(immutable: false) {
   # timestamp rounded to current day by dividing by 86400
   id: ID!
   # timestamp rounded to current day by dividing by 86400
@@ -508,133 +175,7 @@ type PoolDayData @entity {
   close: BigDecimal!
 }
 
-
-type AlphaHunter @entity {
-  # Contract address
-  id: ID!
-  totalAllocPoint: BigInt!
-  rewardPeriods: [RewardPeriod!]! @derivedFrom(field: "alphaHunter")
-  timestamp: BigInt!
-  block: BigInt!
-}
-
-type RewardToken @entity {
-  id: ID! # token + periodNumber
-  rewardPeriod: RewardPeriod!
-  token: Token! # Reward token address
-  rewardRate: BigDecimal!
-  startTime: BigInt!
-  endTime: BigInt!
-}
-
-type RewardPeriod @entity {
-  id: ID! # Reward period identifier
-  periodNumber: BigInt!
-  alphaHunter: AlphaHunter! # Reference to the AlphaHunter
-  rewardTokens: [RewardToken!]! @derivedFrom(field: "rewardPeriod")
-}
-
-
-type LMPool @entity {
-  id: ID! # LM Pool address
-  pool: Pool! # Reference to associated V3 Pool
-  allocPoint: BigInt! # Allocation points
-  stakedLiquidity: BigDecimal! # Total staked liquidity
-  stakedLiquidityUSD: BigDecimal! # Staked liquidity in USD
-  tvl: BigDecimal! # Total Value Locked (native token units)
-  tvlUSD: BigDecimal! # Total Value Locked (USD)
-  volume: BigDecimal! # Total volume in token units
-  volumeUSD: BigDecimal! # Total volume in USD
-  lmTransactions: [LMTransaction!]! @derivedFrom(field: "pool")
-  alphaHunter: AlphaHunter
-  totalUsersCount: BigInt
-  userCount: BigInt
-}
-
-type LMTransaction @entity {
-  id: ID! # Unique transaction ID
-  type: String! # "Deposit", "Withdraw", "Harvest"
-  user: Bytes! # User address
-  pool: LMPool! # Reference to LM Pool
-  amount: BigDecimal! # Liquidity deposited or withdrawn
-  reward: BigDecimal # Rewards harvested
-  token: Token # Reward Token
-  timestamp: BigInt! # Transaction timestamp
-}
-
-type HarvestEvent @entity {
-  id: ID!
-  token: String!
-  wethCollected: BigInt!
-  tokensCollected: BigInt!
-  tokensBurned: BigInt!
-  wethToBuyback: BigInt!
-  wethToIpOwner: BigInt!
-  blockNumber: BigInt!
-  timestamp: BigInt!
-  transactionHash: String!
-}
-
-type ClaimEvent @entity {
-  id: ID!
-  token: String!
-  recipient: String!
-  tokenAmount: BigInt!
-  ethAmount: BigInt!
-  blockNumber: BigInt!
-  timestamp: BigInt!
-  transactionHash: String!
-}
-
-type VestingSchedule @entity {
-  id: ID!
-  token: String!
-  totalAmount: BigInt!
-  startTime: BigInt!
-  endTime: BigInt!
-  blockNumber: BigInt!
-  timestamp: BigInt!
-  transactionHash: String!
-}
-
-type HarvestDistributedEvent @entity {
-  id: ID!
-  token: String!
-  tokenCollected: BigInt!
-  tokenToIpTreasury: BigInt!
-  tokenToAirdrop: BigInt!
-  wethCollected: BigInt!
-  wethToIpOwner: BigInt!
-  wethToBuyback: BigInt!
-  wethToAirdrop: BigInt!
-  wethToProtocol: BigInt!
-  blockNumber: BigInt!
-  timestamp: BigInt!
-  transactionHash: String!
-}
-
-type AirdropClaimEvent @entity {
-  id: ID!
-  token: String!
-  recipient: String!
-  tokenAmount: BigInt!
-  wethAmount: BigInt!
-  blockNumber: BigInt!
-  timestamp: BigInt!
-  transactionHash: String!
-}
-
-type TreasuryFlushEvent @entity {
-  id: ID!
-  token: String!
-  treasury: String!
-  amount: BigInt!
-  blockNumber: BigInt!
-  timestamp: BigInt!
-  transactionHash: String!
-}
-
-type IpTokenLink @entity {
+type IpTokenLink @entity(immutable: true) {
   id: ID!
   ipaId: String!
   token: String!
@@ -643,47 +184,26 @@ type IpTokenLink @entity {
   transactionHash: String!
 }
 
-type LiquidityCollectedEvent @entity {
-  id: ID!
+type TokenDeployment @entity(immutable: true) {
+  id: ID!                      # token address
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: String!
+  tokenCreator: String!
+  token: String!
   pool: String!
-  tickLower: BigInt!
-  tickUpper: BigInt!
-  wethAmount: BigInt!
-  tokenAmount: BigInt!
-  blockNumber: BigInt!
-  timestamp: BigInt!
-  transactionHash: String!
+  startTickList: [BigInt!]!
+  allocationList: [BigInt!]!
 }
 
-type VestingReleaseEvent @entity {
-  id: ID!
-  token: String!
-  amount: BigInt!
-  blockNumber: BigInt!
-  timestamp: BigInt!
-  transactionHash: String!
-}
-
-type EthDepositEvent @entity {
-  id: ID!
-  token: String!
-  amount: BigInt!
-  blockNumber: BigInt!
-  timestamp: BigInt!
-  transactionHash: String!
-}
-
-type PoolTokenMap @entity {
-  id: ID!
-  token: String!
-}
-
-type TokenRewardSummary @entity {
+type TokenRewardSummary @entity(immutable: false) {
   id: ID!
   ipaId: String
   vestingTotalAmount: BigInt!
   vestingClaimedAmount: BigInt!
-  vestingClaimedEthAmount: BigInt!
+  vestingStart: BigInt!
+  vestingEnd: BigInt!
+  vestingPendingAmount: BigInt!
   harvestCount: BigInt!
   tokenCollected: BigInt!
   tokenToIpTreasury: BigInt!
@@ -693,23 +213,34 @@ type TokenRewardSummary @entity {
   wipToBuyback: BigInt!
   wipToAirdrop: BigInt!
   wipToProtocol: BigInt!
-  treasuryFlushedAmount: BigInt!
-  airdropTokenClaimed: BigInt!
-  airdropWipClaimed: BigInt!
-  airdropClaimCount: BigInt!
-  lpFeeWeth: BigInt!
-  lpFeeToken: BigInt!
-  ethDeposited: BigInt!
   lastUpdatedBlock: BigInt!
   lastUpdatedTimestamp: BigInt!
+  # USD conversion fields
+  vestingClaimedAmountUSD: BigDecimal!
+  tokenCollectedUSD: BigDecimal!
+  tokenToIpTreasuryUSD: BigDecimal!
+  tokenToAirdropUSD: BigDecimal!
+  wipCollectedUSD: BigDecimal!
+  wipToIpOwnerUSD: BigDecimal!
+  wipToBuybackUSD: BigDecimal!
+  wipToAirdropUSD: BigDecimal!
+  wipToProtocolUSD: BigDecimal!
+  # Aggregate USD fields
+  totalRewardsUSD: BigDecimal!
+  ipOwnerRewardsUSD: BigDecimal!
+  # Referral fields
+  referralWipAmount: BigInt!
+  referralWipAmountUSD: BigDecimal!
 }
 
-type IpRewardSummary @entity {
+type IpRewardSummary @entity(immutable: false) {
   id: ID!
   tokenCount: BigInt!
   vestingTotalAmount: BigInt!
   vestingClaimedAmount: BigInt!
-  vestingClaimedEthAmount: BigInt!
+  vestingStart: BigInt!
+  vestingEnd: BigInt!
+  vestingPendingAmount: BigInt!
   harvestCount: BigInt!
   tokenCollected: BigInt!
   tokenToIpTreasury: BigInt!
@@ -719,22 +250,31 @@ type IpRewardSummary @entity {
   wipToBuyback: BigInt!
   wipToAirdrop: BigInt!
   wipToProtocol: BigInt!
-  treasuryFlushedAmount: BigInt!
-  airdropTokenClaimed: BigInt!
-  airdropWipClaimed: BigInt!
-  airdropClaimCount: BigInt!
-  lpFeeWeth: BigInt!
-  lpFeeToken: BigInt!
-  ethDeposited: BigInt!
   lastUpdatedBlock: BigInt!
   lastUpdatedTimestamp: BigInt!
+  # USD conversion fields
+  vestingClaimedAmountUSD: BigDecimal!
+  tokenCollectedUSD: BigDecimal!
+  tokenToIpTreasuryUSD: BigDecimal!
+  tokenToAirdropUSD: BigDecimal!
+  wipCollectedUSD: BigDecimal!
+  wipToIpOwnerUSD: BigDecimal!
+  wipToBuybackUSD: BigDecimal!
+  wipToAirdropUSD: BigDecimal!
+  wipToProtocolUSD: BigDecimal!
+  # Aggregate USD fields
+  totalRewardsUSD: BigDecimal!
+  ipOwnerRewardsUSD: BigDecimal!
+  # Referral fields
+  referralWipAmount: BigInt!
+  referralWipAmountUSD: BigDecimal!
 }
 
-type GlobalRewardSummary @entity {
+type GlobalRewardSummary @entity(immutable: false) {
   id: ID!
   vestingTotalAmount: BigInt!
   vestingClaimedAmount: BigInt!
-  vestingClaimedEthAmount: BigInt!
+  vestingPendingAmount: BigInt!
   harvestCount: BigInt!
   tokenCollected: BigInt!
   tokenToIpTreasury: BigInt!
@@ -744,13 +284,93 @@ type GlobalRewardSummary @entity {
   wipToBuyback: BigInt!
   wipToAirdrop: BigInt!
   wipToProtocol: BigInt!
-  treasuryFlushedAmount: BigInt!
-  airdropTokenClaimed: BigInt!
-  airdropWipClaimed: BigInt!
-  airdropClaimCount: BigInt!
-  lpFeeWeth: BigInt!
-  lpFeeToken: BigInt!
-  ethDeposited: BigInt!
   lastUpdatedBlock: BigInt!
   lastUpdatedTimestamp: BigInt!
+  # USD conversion fields
+  vestingClaimedAmountUSD: BigDecimal!
+  tokenCollectedUSD: BigDecimal!
+  tokenToIpTreasuryUSD: BigDecimal!
+  tokenToAirdropUSD: BigDecimal!
+  wipCollectedUSD: BigDecimal!
+  wipToIpOwnerUSD: BigDecimal!
+  wipToBuybackUSD: BigDecimal!
+  wipToAirdropUSD: BigDecimal!
+  wipToProtocolUSD: BigDecimal!
+  # Aggregate USD fields
+  totalRewardsUSD: BigDecimal!
+  ipOwnerRewardsUSD: BigDecimal!
+  # Referral fields
+  referralWipAmount: BigInt!
+  referralWipAmountUSD: BigDecimal!
+}
+
+type WalletAirdropSummary @entity(immutable: false) {
+  id: ID!  # wallet address
+  # UGC
+  ugcMemeTokenClaimed: BigInt!
+  ugcMemeTokenClaimedUSD: BigDecimal!
+  ugcWipClaimed: BigInt!
+  ugcWipClaimedUSD: BigDecimal!
+  ugcClaimCount: BigInt!
+  ugcLastClaimedTimestamp: BigInt!
+  # Holder
+  holderMemeTokenClaimed: BigInt!
+  holderMemeTokenClaimedUSD: BigDecimal!
+  holderWipClaimed: BigInt!
+  holderWipClaimedUSD: BigDecimal!
+  holderClaimCount: BigInt!
+  holderLastClaimedTimestamp: BigInt!
+}
+
+type WalletTokenAirdropSummary @entity(immutable: false) {
+  # id: {wallet}-{token}
+  id: ID!
+  wallet: String!
+  token: String!
+  # UGC
+  ugcMemeTokenClaimed: BigInt!
+  ugcMemeTokenClaimedUSD: BigDecimal!
+  ugcWipClaimed: BigInt!
+  ugcWipClaimedUSD: BigDecimal!
+  ugcClaimCount: BigInt!
+  ugcLastClaimedTimestamp: BigInt!
+  # Holder
+  holderMemeTokenClaimed: BigInt!
+  holderMemeTokenClaimedUSD: BigDecimal!
+  holderWipClaimed: BigInt!
+  holderWipClaimedUSD: BigDecimal!
+  holderClaimCount: BigInt!
+  holderLastClaimedTimestamp: BigInt!
+}
+
+type TokenAirdropClaimSummary @entity(immutable: false) {
+  id: ID!  # token address
+  # UGC claims (content creators)
+  ugcMemeTokenClaimed: BigInt!
+  ugcMemeTokenClaimedUSD: BigDecimal!
+  ugcWipClaimed: BigInt!
+  ugcWipClaimedUSD: BigDecimal!
+  ugcClaimCount: BigInt!
+  ugcLastClaimedTimestamp: BigInt!
+  # Holder claims (token holders)
+  holderMemeTokenClaimed: BigInt!
+  holderMemeTokenClaimedUSD: BigDecimal!
+  holderWipClaimed: BigInt!
+  holderWipClaimedUSD: BigDecimal!
+  holderClaimCount: BigInt!
+  holderLastClaimedTimestamp: BigInt!
+}
+
+type WalletAirdropClaim @entity(immutable: true) {
+  id: ID!                     # transactionHash
+  wallet: String!
+  token: String!
+  claimType: String!          # "ugc" | "holder"
+  tokenAmount: BigInt!
+  wethAmount: BigInt!
+  tokenAmountUSD: BigDecimal!
+  wethAmountUSD: BigDecimal!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  transactionHash: String!
 }
