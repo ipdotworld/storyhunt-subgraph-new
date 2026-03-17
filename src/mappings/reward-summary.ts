@@ -13,6 +13,7 @@ export function getOrCreateTokenSummary(token: string): TokenRewardSummary {
     s.vestingClaimedAmount = ZERO
     s.vestingStart = ZERO
     s.vestingEnd = ZERO
+    s.vestingPendingAmount = ZERO
     s.harvestCount = ZERO
     s.tokenCollected = ZERO
     s.tokenToIpTreasury = ZERO
@@ -52,6 +53,7 @@ export function getOrCreateIpSummary(ipaId: string): IpRewardSummary {
     s.vestingClaimedAmount = ZERO
     s.vestingStart = ZERO
     s.vestingEnd = ZERO
+    s.vestingPendingAmount = ZERO
     s.harvestCount = ZERO
     s.tokenCollected = ZERO
     s.tokenToIpTreasury = ZERO
@@ -88,6 +90,7 @@ export function getOrCreateGlobalSummary(): GlobalRewardSummary {
     s = new GlobalRewardSummary('global')
     s.vestingTotalAmount = ZERO
     s.vestingClaimedAmount = ZERO
+    s.vestingPendingAmount = ZERO
     s.harvestCount = ZERO
     s.tokenCollected = ZERO
     s.tokenToIpTreasury = ZERO

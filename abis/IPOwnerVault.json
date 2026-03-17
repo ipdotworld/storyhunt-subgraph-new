@@ -38,5 +38,69 @@
     ],
     "name": "EthDeposited",
     "type": "event"
+  },
+  {
+    "type": "function",
+    "name": "vesting",
+    "inputs": [
+      {"name": "token", "type": "address", "internalType": "address"}
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct IIPOwnerVault.VestingData",
+        "components": [
+          {"name": "isSet", "type": "bool", "internalType": "bool"},
+          {"name": "start", "type": "uint64", "internalType": "uint64"},
+          {"name": "end", "type": "uint64", "internalType": "uint64"},
+          {"name": "remaining", "type": "uint256", "internalType": "uint256"},
+          {"name": "released", "type": "uint256", "internalType": "uint256"}
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "vestingDuration",
+    "inputs": [],
+    "outputs": [
+      {"name": "", "type": "uint64", "internalType": "uint64"}
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "remaining",
+    "inputs": [
+      {"name": "token", "type": "address", "internalType": "address"}
+    ],
+    "outputs": [
+      {"name": "", "type": "uint256", "internalType": "uint256"}
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "released",
+    "inputs": [
+      {"name": "token", "type": "address", "internalType": "address"}
+    ],
+    "outputs": [
+      {"name": "", "type": "uint256", "internalType": "uint256"}
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "releasable",
+    "inputs": [
+      {"name": "token", "type": "address", "internalType": "address"}
+    ],
+    "outputs": [
+      {"name": "", "type": "uint256", "internalType": "uint256"}
+    ],
+    "stateMutability": "view"
   }
 ]

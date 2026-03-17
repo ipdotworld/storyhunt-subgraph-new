@@ -203,6 +203,7 @@ type TokenRewardSummary @entity(immutable: false) {
   vestingClaimedAmount: BigInt!
   vestingStart: BigInt!
   vestingEnd: BigInt!
+  vestingPendingAmount: BigInt!
   harvestCount: BigInt!
   tokenCollected: BigInt!
   tokenToIpTreasury: BigInt!
@@ -239,6 +240,7 @@ type IpRewardSummary @entity(immutable: false) {
   vestingClaimedAmount: BigInt!
   vestingStart: BigInt!
   vestingEnd: BigInt!
+  vestingPendingAmount: BigInt!
   harvestCount: BigInt!
   tokenCollected: BigInt!
   tokenToIpTreasury: BigInt!
@@ -272,6 +274,7 @@ type GlobalRewardSummary @entity(immutable: false) {
   id: ID!
   vestingTotalAmount: BigInt!
   vestingClaimedAmount: BigInt!
+  vestingPendingAmount: BigInt!
   harvestCount: BigInt!
   tokenCollected: BigInt!
   tokenToIpTreasury: BigInt!
