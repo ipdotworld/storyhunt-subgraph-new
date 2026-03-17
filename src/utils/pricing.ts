@@ -1,7 +1,7 @@
 import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 
 import { exponentToBigDecimal, safeDiv } from '../utils/index'
-import { Bundle, Pool, Token } from './../types/schema'
+import { Pool, Token } from './../types/schema'
 import { ONE_BD, ZERO_BD, ZERO_BI } from './constants'
 
 const Q192 = BigInt.fromI32(2).pow(192 as u8)
@@ -17,18 +17,6 @@ export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, t
   return [price0, price1]
 }
 
-export function getNativePriceInUSD(
-  stablecoinWrappedNativePoolAddress: string,
-  stablecoinIsToken0: boolean,
-): BigDecimal {
-  const stablecoinWrappedNativePool = Pool.load(stablecoinWrappedNativePoolAddress)
-  if (stablecoinWrappedNativePool !== null) {
-    return stablecoinIsToken0 ? stablecoinWrappedNativePool.token0Price : stablecoinWrappedNativePool.token1Price
-  } else {
-    return BigDecimal.fromString('0')
-  }
-}
-
 /**
  * Search through graph to find derived IP per token.
  * @todo update to be derived IP (add stablecoin estimates)
@@ -38,6 +26,7 @@ export function findNativePerToken(
   wrappedNativeAddress: string,
   stablecoinAddresses: string[],
   minimumNativeLocked: BigDecimal,
+  ipPriceUSD: BigDecimal,
 ): BigDecimal {
   if (token.id == wrappedNativeAddress) {
     return ONE_BD
@@ -47,12 +36,11 @@ export function findNativePerToken(
   // need to update this to actually detect best rate based on liquidity distribution
   let largestLiquidityIP = ZERO_BD
   let priceSoFar = ZERO_BD
-  const bundle = Bundle.load('1')!
 
   // hardcoded fix for incorrect rates
   // if whitelist includes token - get the safe price
   if (stablecoinAddresses.includes(token.id)) {
-    priceSoFar = safeDiv(ONE_BD, bundle.IPPriceUSD)
+    priceSoFar = safeDiv(ONE_BD, ipPriceUSD)
   } else {
     for (let i = 0; i < whiteList.length; ++i) {
       const poolAddress = whiteList[i]
@@ -104,10 +92,10 @@ export function getTrackedAmountUSD(
   tokenAmount1: BigDecimal,
   token1: Token,
   whitelistTokens: string[],
+  ipPriceUSD: BigDecimal,
 ): BigDecimal {
-  const bundle = Bundle.load('1')!
-  const price0USD = token0.derivedIP.times(bundle.IPPriceUSD)
-  const price1USD = token1.derivedIP.times(bundle.IPPriceUSD)
+  const price0USD = token0.derivedIP.times(ipPriceUSD)
+  const price1USD = token1.derivedIP.times(ipPriceUSD)
 
   // both are whitelist tokens, return sum of both amounts
   if (whitelistTokens.includes(token0.id) && whitelistTokens.includes(token1.id)) {

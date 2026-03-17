@@ -1,6 +1,6 @@
 import { Address, BigDecimal, BigInt, ethereum } from '@graphprotocol/graph-ts'
 
-import { Bundle, Token, Transaction } from '../types/schema'
+import { Token } from '../types/schema'
 import { ONE_BD, ZERO_BD, ZERO_BI } from '../utils/constants'
 
 export function exponentToBigDecimal(decimals: BigInt): BigDecimal {
@@ -96,29 +96,4 @@ export function convertTokenToDecimal(tokenAmount: BigInt, exchangeDecimals: Big
 
 export function convertIPToDecimal(IP: BigInt): BigDecimal {
   return IP.toBigDecimal().div(exponentToBigDecimal(18))
-}
-
-export function loadTransaction(event: ethereum.Event, poolId: String): Transaction {
-  let transaction = Transaction.load(event.transaction.hash.toHexString())
-  if (transaction === null) {
-    transaction = new Transaction(event.transaction.hash.toHexString())
-  }
-  transaction.blockNumber = event.block.number
-  transaction.timestamp = event.block.timestamp
-  transaction.gasUsed = BigInt.zero() //needs to be moved to transaction receipt
-  transaction.gasPrice = event.transaction.gasPrice
-  transaction.poolId = poolId
-  transaction.from = event.transaction.from.toHexString()
-  transaction.save()
-  return transaction as Transaction
-}
-
-export function getTokenPriceUSD(tokenAddress: Address): BigDecimal {
-  let token = Token.load(tokenAddress.toHexString());
-  if (!token || token.derivedIP == ZERO_BD) return ZERO_BD;
-
-  let bundle = Bundle.load("1"); // Bundle ID is typically "1"
-  if (!bundle || bundle.IPPriceUSD == ZERO_BD) return ZERO_BD;
-
-  return token.derivedIP.times(bundle.IPPriceUSD);
 }

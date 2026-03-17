@@ -1,8 +1,8 @@
 import { Address, BigInt } from '@graphprotocol/graph-ts'
 
-import { ERC20 } from '../types/Factory/ERC20'
-import { ERC20NameBytes } from '../types/Factory/ERC20NameBytes'
-import { ERC20SymbolBytes } from '../types/Factory/ERC20SymbolBytes'
+import { ERC20 } from '../types/IPWorld/ERC20'
+import { ERC20NameBytes } from '../types/IPWorld/ERC20NameBytes'
+import { ERC20SymbolBytes } from '../types/IPWorld/ERC20SymbolBytes'
 import { isNullIPValue } from '.'
 import { getStaticDefinition, StaticTokenDefinition } from './staticTokenDefinition'
 

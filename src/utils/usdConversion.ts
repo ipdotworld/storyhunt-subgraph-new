@@ -24,7 +24,9 @@ export function getIPPriceUSD(): BigDecimal {
 
   let pool = PoolContract.bind(Address.fromString(STABLECOIN_WRAPPEDNATIVE_POOLADDRESS))
   let slot0Result = pool.try_slot0()
-  if (slot0Result.reverted) return ZERO_BD
+  if (slot0Result.reverted) {
+    return ZERO_BD
+  }
 
   let sqrtPriceX96 = slot0Result.value.getSqrtPriceX96()
   if (sqrtPriceX96.isZero()) return ZERO_BD

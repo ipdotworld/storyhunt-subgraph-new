@@ -1,11 +1,142 @@
-import { BigInt } from '@graphprotocol/graph-ts'
+import { Address, BigInt, log } from '@graphprotocol/graph-ts'
 import { TokenDeployed, TokenDeployed1, Harvest, Harvest1, HarvestDistributed, AirdropClaimedUgc, AirdropClaimedHolder, TreasuryFlushed, Linked, ReferralFeePaid } from '../types/IPWorld/IPWorld'
-import { IpTokenLink, TokenDeployment, WalletAirdropClaim } from '../types/schema'
+import { Pool as PoolContract } from '../types/templates/Pool/Pool'
+import { IpTokenLink, Pool, Token, TokenDeployment, WalletAirdropClaim } from '../types/schema'
 import { Pool as PoolTemplate } from '../types/templates'
 import { getOrCreateTokenSummary, getOrCreateIpSummary, getOrCreateGlobalSummary, getOrCreateWalletAirdropSummary, getOrCreateWalletTokenAirdropSummary, getOrCreateTokenAirdropClaimSummary, totalRewardsUSD, ipOwnerRewardsUSD } from './reward-summary'
 import { wipToUSD, tokenToUSD } from '../utils/usdConversion'
+import { getSubgraphConfig } from '../utils/chains'
+import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol, fetchTokenTotalSupply } from '../utils/token'
+import { ZERO_BD, ZERO_BI, ONE_BI } from '../utils/constants'
 
 const ONE = BigInt.fromI32(1)
+
+function createPoolAndTokens(poolAddress: Address, eventBlockTimestamp: BigInt, eventBlockNumber: BigInt, txFrom: Address): void {
+  const config = getSubgraphConfig()
+  const whitelistTokens = config.whitelistTokens
+  const tokenOverrides = config.tokenOverrides
+
+  // Bind pool contract and fetch token addresses via eth_call
+  const poolContract = PoolContract.bind(poolAddress)
+
+  const token0Result = poolContract.try_token0()
+  const token1Result = poolContract.try_token1()
+  const feeResult = poolContract.try_fee()
+
+  if (token0Result.reverted || token1Result.reverted || feeResult.reverted) {
+    log.warning('Pool contract calls reverted for pool {}', [poolAddress.toHexString()])
+    return
+  }
+
+  const token0Address = token0Result.value
+  const token1Address = token1Result.value
+  const fee = feeResult.value
+
+  // Create Token entities if they don't exist
+  let token0 = Token.load(token0Address.toHexString())
+  if (token0 === null) {
+    token0 = new Token(token0Address.toHexString())
+    token0.symbol = fetchTokenSymbol(token0Address, tokenOverrides)
+    token0.name = fetchTokenName(token0Address, tokenOverrides)
+    token0.totalSupply = fetchTokenTotalSupply(token0Address)
+    const decimals = fetchTokenDecimals(token0Address, tokenOverrides)
+    if (decimals === null) {
+      log.debug('decimal on token 0 was null', [])
+      return
+    }
+    token0.decimals = decimals
+    token0.derivedIP = ZERO_BD
+    token0.volume = ZERO_BD
+    token0.volumeUSD = ZERO_BD
+    token0.feesUSD = ZERO_BD
+    token0.untrackedVolumeUSD = ZERO_BD
+    token0.totalValueLocked = ZERO_BD
+    token0.totalValueLockedUSD = ZERO_BD
+    token0.totalValueLockedUSDUntracked = ZERO_BD
+    token0.txCount = ZERO_BI
+    token0.poolCount = ZERO_BI
+    token0.whitelistPools = []
+    token0.neighbour = []
+  }
+
+  let token1 = Token.load(token1Address.toHexString())
+  if (token1 === null) {
+    token1 = new Token(token1Address.toHexString())
+    token1.symbol = fetchTokenSymbol(token1Address, tokenOverrides)
+    token1.name = fetchTokenName(token1Address, tokenOverrides)
+    token1.totalSupply = fetchTokenTotalSupply(token1Address)
+    const decimals = fetchTokenDecimals(token1Address, tokenOverrides)
+    if (decimals === null) {
+      log.debug('decimal on token 1 was null', [])
+      return
+    }
+    token1.decimals = decimals
+    token1.derivedIP = ZERO_BD
+    token1.volume = ZERO_BD
+    token1.volumeUSD = ZERO_BD
+    token1.feesUSD = ZERO_BD
+    token1.untrackedVolumeUSD = ZERO_BD
+    token1.totalValueLocked = ZERO_BD
+    token1.totalValueLockedUSD = ZERO_BD
+    token1.totalValueLockedUSDUntracked = ZERO_BD
+    token1.txCount = ZERO_BI
+    token1.poolCount = ZERO_BI
+    token1.whitelistPools = []
+    token1.neighbour = []
+  }
+
+  // Update whitelistPools
+  if (whitelistTokens.includes(token0.id)) {
+    const newPools = token1.whitelistPools
+    newPools.push(poolAddress.toHexString())
+    token1.whitelistPools = newPools
+  }
+  if (whitelistTokens.includes(token1.id)) {
+    const newPools = token0.whitelistPools
+    newPools.push(poolAddress.toHexString())
+    token0.whitelistPools = newPools
+  }
+
+  // Create Pool entity
+  const pool = new Pool(poolAddress.toHexString())
+  pool.token0 = token0.id
+  pool.token1 = token1.id
+  pool.feeTier = BigInt.fromI32(fee)
+  pool.createdAtTimestamp = eventBlockTimestamp
+  pool.createdAtBlockNumber = eventBlockNumber
+  pool.liquidityProviderCount = ZERO_BI
+  pool.txCount = ZERO_BI
+  pool.liquidity = ZERO_BI
+  pool.sqrtPrice = ZERO_BI
+  pool.token0Price = ZERO_BD
+  pool.token1Price = ZERO_BD
+  pool.observationIndex = ZERO_BI
+  pool.totalValueLockedToken0 = ZERO_BD
+  pool.totalValueLockedToken1 = ZERO_BD
+  pool.totalValueLockedUSD = ZERO_BD
+  pool.totalValueLockedIP = ZERO_BD
+  pool.totalValueLockedUSDUntracked = ZERO_BD
+  pool.volumeToken0 = ZERO_BD
+  pool.volumeToken1 = ZERO_BD
+  pool.volumeUSD = ZERO_BD
+  pool.feesIP = ZERO_BD
+  pool.feesUSD = ZERO_BD
+  pool.untrackedVolumeUSD = ZERO_BD
+  pool.collectedFeesToken0 = ZERO_BD
+  pool.collectedFeesToken1 = ZERO_BD
+  pool.collectedFeesUSD = ZERO_BD
+  pool.feeAPRIP = ZERO_BD
+  pool.feeAPRUSD = ZERO_BD
+  pool.from = txFrom.toHexString()
+
+  pool.save()
+  token0.poolCount = token0.poolCount.plus(ONE_BI)
+  token1.poolCount = token1.poolCount.plus(ONE_BI)
+  token0.neighbour = token0.neighbour.includes(token1.id) ? token0.neighbour : token0.neighbour.concat([token1.id])
+  token1.neighbour = token1.neighbour.includes(token0.id) ? token1.neighbour : token1.neighbour.concat([token0.id])
+  token0.save()
+  token1.save()
+}
 
 export function handleTokenDeployed(event: TokenDeployed): void {
   const deployment = new TokenDeployment(event.params.token.toHexString())
@@ -29,6 +160,8 @@ export function handleTokenDeployed(event: TokenDeployed): void {
   deployment.allocationList = allocationList
 
   deployment.save()
+
+  createPoolAndTokens(event.params.pool, event.block.timestamp, event.block.number, event.transaction.from)
   PoolTemplate.create(event.params.pool)
 }
 
@@ -47,6 +180,8 @@ export function handleTokenDeployedV1(event: TokenDeployed1): void {
   deployment.allocationList = []
 
   deployment.save()
+
+  createPoolAndTokens(event.params.pool, event.block.timestamp, event.block.number, event.transaction.from)
   PoolTemplate.create(event.params.pool)
 }
 

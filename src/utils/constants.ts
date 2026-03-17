@@ -1,7 +1,5 @@
 import { Address, BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 
-import { Factory as FactoryContract } from '../types/Factory/Factory'
-
 export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000'
 
 export const ZERO_BI = BigInt.fromI32(0)
@@ -21,8 +19,6 @@ export const SECONDS_PER_YEAR = BigDecimal.fromString('31536000') // 365 * 24 * 
     '0x1514000000000000000000000000000000000000', //WIP
     '0xf1815bd50389c46847f0bda824ec8da914045d14', //USDC.e (Bridged)
   ]
-
-export const factoryContract = FactoryContract.bind(Address.fromString(V3_FACTORY_CONTRACT))
 
 //supported chains
 // subgraph does not support string enums, hence these constants
