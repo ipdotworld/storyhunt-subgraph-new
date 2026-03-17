@@ -108,6 +108,36 @@ export class Harvest__Params {
   }
 }
 
+export class Harvest1 extends ethereum.Event {
+  get params(): Harvest1__Params {
+    return new Harvest1__Params(this);
+  }
+}
+
+export class Harvest1__Params {
+  _event: Harvest1;
+
+  constructor(event: Harvest1) {
+    this._event = event;
+  }
+
+  get token(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get tokenAmount(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get wethAmount(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+
+  get protocolFeeAmount(): BigInt {
+    return this._event.parameters[3].value.toBigInt();
+  }
+}
+
 export class Claimed extends ethereum.Event {
   get params(): Claimed__Params {
     return new Claimed__Params(this);
@@ -541,6 +571,36 @@ export class TokenDeployed__Params {
 
   get allocationList(): Array<BigInt> {
     return this._event.parameters[4].value.toBigIntArray();
+  }
+}
+
+export class TokenDeployed1 extends ethereum.Event {
+  get params(): TokenDeployed1__Params {
+    return new TokenDeployed1__Params(this);
+  }
+}
+
+export class TokenDeployed1__Params {
+  _event: TokenDeployed1;
+
+  constructor(event: TokenDeployed1) {
+    this._event = event;
+  }
+
+  get tokenCreator(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get token(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+
+  get pool(): Address {
+    return this._event.parameters[2].value.toAddress();
+  }
+
+  get startTick(): i32 {
+    return this._event.parameters[3].value.toI32();
   }
 }
 

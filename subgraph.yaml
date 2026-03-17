@@ -61,6 +61,12 @@ dataSources:
       abis:
         - name: IPWorld
           file: ./abis/IPWorld.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: ERC20SymbolBytes
+          file: ./abis/ERC20SymbolBytes.json
+        - name: ERC20NameBytes
+          file: ./abis/ERC20NameBytes.json
       eventHandlers:
         - event: TokenDeployed(indexed address,indexed address,indexed address,int24[],uint256[])
           handler: handleTokenDeployed
@@ -96,6 +102,8 @@ dataSources:
       abis:
         - name: IPOwnerVault
           file: ./abis/IPOwnerVault.json
+        - name: Pool
+          file: ./abis/pool.json
       eventHandlers:
         - event: VestedTokensAndEthClaimed(indexed address,indexed address,uint256,uint256)
           handler: handleVestedTokensAndEthClaimed

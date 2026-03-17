@@ -114,8 +114,139 @@ export class EthDeposited__Params {
   }
 }
 
+export class IPOwnerVault__vestingResultValue0Struct extends ethereum.Tuple {
+  get isSet(): boolean {
+    return this[0].toBoolean();
+  }
+
+  get start(): BigInt {
+    return this[1].toBigInt();
+  }
+
+  get end(): BigInt {
+    return this[2].toBigInt();
+  }
+
+  get remaining(): BigInt {
+    return this[3].toBigInt();
+  }
+
+  get released(): BigInt {
+    return this[4].toBigInt();
+  }
+}
+
 export class IPOwnerVault extends ethereum.SmartContract {
   static bind(address: Address): IPOwnerVault {
     return new IPOwnerVault("IPOwnerVault", address);
+  }
+
+  vesting(token: Address): IPOwnerVault__vestingResultValue0Struct {
+    let result = super.call(
+      "vesting",
+      "vesting(address):((bool,uint64,uint64,uint256,uint256))",
+      [ethereum.Value.fromAddress(token)],
+    );
+
+    return changetype<IPOwnerVault__vestingResultValue0Struct>(
+      result[0].toTuple(),
+    );
+  }
+
+  try_vesting(
+    token: Address,
+  ): ethereum.CallResult<IPOwnerVault__vestingResultValue0Struct> {
+    let result = super.tryCall(
+      "vesting",
+      "vesting(address):((bool,uint64,uint64,uint256,uint256))",
+      [ethereum.Value.fromAddress(token)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      changetype<IPOwnerVault__vestingResultValue0Struct>(value[0].toTuple()),
+    );
+  }
+
+  vestingDuration(): BigInt {
+    let result = super.call(
+      "vestingDuration",
+      "vestingDuration():(uint64)",
+      [],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_vestingDuration(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "vestingDuration",
+      "vestingDuration():(uint64)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  remaining(token: Address): BigInt {
+    let result = super.call("remaining", "remaining(address):(uint256)", [
+      ethereum.Value.fromAddress(token),
+    ]);
+
+    return result[0].toBigInt();
+  }
+
+  try_remaining(token: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall("remaining", "remaining(address):(uint256)", [
+      ethereum.Value.fromAddress(token),
+    ]);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  released(token: Address): BigInt {
+    let result = super.call("released", "released(address):(uint256)", [
+      ethereum.Value.fromAddress(token),
+    ]);
+
+    return result[0].toBigInt();
+  }
+
+  try_released(token: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall("released", "released(address):(uint256)", [
+      ethereum.Value.fromAddress(token),
+    ]);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  releasable(token: Address): BigInt {
+    let result = super.call("releasable", "releasable(address):(uint256)", [
+      ethereum.Value.fromAddress(token),
+    ]);
+
+    return result[0].toBigInt();
+  }
+
+  try_releasable(token: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall("releasable", "releasable(address):(uint256)", [
+      ethereum.Value.fromAddress(token),
+    ]);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 }
