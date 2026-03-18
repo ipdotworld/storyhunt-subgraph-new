@@ -17,9 +17,6 @@ import { getIPPriceUSD, getIPPriceUSDFromPool, saveIPPriceUSD } from '../../util
 const NEGATIVE_ONE_BD = BigDecimal.fromString('-1')
 const TWO_BD = BigDecimal.fromString('2')
 const ONE_MILLION_BD = BigDecimal.fromString('1000000')
-const ONE_DAY_BD = BigDecimal.fromString('86400')
-const DAYS_PER_YEAR_BD = BigDecimal.fromString('365')
-const HUNDRED_BD = BigDecimal.fromString('100')
 
 // Helper function to compute the absolute value of a BigDecimal
 function bdAbs(x: BigDecimal): BigDecimal {
@@ -156,9 +153,6 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       .plus(pool.totalValueLockedToken1.times(token1.derivedIP))
     pool.totalValueLockedUSD = pool.totalValueLockedIP.times(ipPriceUSD)
 
-    const timeElapsed = event.block.timestamp.minus(pool.createdAtTimestamp)
-    calculateFeeAPR(pool, feesIP, feesUSD, timeElapsed)
-
     token0.totalValueLockedUSD = token0.totalValueLocked.times(token0.derivedIP).times(ipPriceUSD)
     token1.totalValueLockedUSD = token1.totalValueLocked.times(token1.derivedIP).times(ipPriceUSD)
 
@@ -194,23 +188,4 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     token0.save()
     token1.save()
   }
-}
-
-function calculateFeeAPR(pool: Pool, feesIP: BigDecimal, feesUSD: BigDecimal, timeElapsed: BigInt): void {
-  const timeElapsedBD = timeElapsed.toBigDecimal()
-
-  // Smooth fees by averaging over a day (or another chosen window)
-  const dailyFeesIP = safeDiv(feesIP.times(ONE_DAY_BD), timeElapsedBD)
-  const dailyFeesUSD = safeDiv(feesUSD.times(ONE_DAY_BD), timeElapsedBD)
-
-  // Calculate annualized fees based on daily fees
-  const annualizedFeesIP = dailyFeesIP.times(DAYS_PER_YEAR_BD)
-  const annualizedFeesUSD = dailyFeesUSD.times(DAYS_PER_YEAR_BD)
-
-  // Use average liquidity to normalize APR
-  const avgLiquidityIP = safeDiv(pool.totalValueLockedIP, TWO_BD)
-  const avgLiquidityUSD = safeDiv(pool.totalValueLockedUSD, TWO_BD)
-
-  pool.feeAPRIP = safeDiv(annualizedFeesIP, avgLiquidityIP).times(HUNDRED_BD)
-  pool.feeAPRUSD = safeDiv(annualizedFeesUSD, avgLiquidityUSD).times(HUNDRED_BD)
 }
