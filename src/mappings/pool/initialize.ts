@@ -4,7 +4,7 @@ import { Pool, Token } from '../../types/schema'
 import { Initialize } from '../../types/templates/Pool/Pool'
 import { getSubgraphConfig, SubgraphConfig } from '../../utils/chains'
 import { updatePoolDayData } from '../../utils/intervalUpdates'
-import { findNativePerToken } from '../../utils/pricing'
+import { currentPoolCanUpdateTokenPricing, findNativePerToken } from '../../utils/pricing'
 import { getIPPriceUSD } from '../../utils/usdConversion'
 
 export function handleInitialize(event: Initialize): void {
@@ -31,20 +31,32 @@ export function handleInitializeHelper(event: Initialize, subgraphConfig: Subgra
   // update token prices
   if (token0 && token1) {
     const ipPriceUSD = getIPPriceUSD()
-    token0.derivedIP = findNativePerToken(
-      token0 as Token,
-      wrappedNativeAddress,
-      stablecoinAddresses,
-      minimumNativeLocked,
-      ipPriceUSD,
-    )
-    token1.derivedIP = findNativePerToken(
-      token1 as Token,
-      wrappedNativeAddress,
-      stablecoinAddresses,
-      minimumNativeLocked,
-      ipPriceUSD,
-    )
+    if (currentPoolCanUpdateTokenPricing(token0 as Token, pool.id, wrappedNativeAddress, stablecoinAddresses)) {
+      token0.derivedIP = findNativePerToken(
+        token0 as Token,
+        wrappedNativeAddress,
+        stablecoinAddresses,
+        minimumNativeLocked,
+        ipPriceUSD,
+        pool.id,
+        pool,
+        token0 as Token,
+        token1 as Token,
+      )
+    }
+    if (currentPoolCanUpdateTokenPricing(token1 as Token, pool.id, wrappedNativeAddress, stablecoinAddresses)) {
+      token1.derivedIP = findNativePerToken(
+        token1 as Token,
+        wrappedNativeAddress,
+        stablecoinAddresses,
+        minimumNativeLocked,
+        ipPriceUSD,
+        pool.id,
+        pool,
+        token0 as Token,
+        token1 as Token,
+      )
+    }
     token0.save()
     token1.save()
   }
