@@ -55,7 +55,7 @@ export function handleMintHelper(event: MintEvent, subgraphConfig: SubgraphConfi
       .plus(pool.totalValueLockedToken1.times(token1.derivedIP))
     pool.totalValueLockedUSD = pool.totalValueLockedIP.times(ipPriceUSD)
 
-    updatePoolDayData(event)
+    updatePoolDayData(event, pool)
 
     token0.save()
     token1.save()

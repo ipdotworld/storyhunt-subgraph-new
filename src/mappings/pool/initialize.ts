@@ -26,7 +26,7 @@ export function handleInitializeHelper(event: Initialize, subgraphConfig: Subgra
   const token0 = Token.load(pool.token0)
   const token1 = Token.load(pool.token1)
 
-  updatePoolDayData(event)
+  updatePoolDayData(event, pool)
 
   // update token prices
   if (token0 && token1) {

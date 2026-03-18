@@ -4,18 +4,21 @@ import { Pool, Swap, Token } from '../../types/schema'
 import { Swap as SwapEvent } from '../../types/templates/Pool/Pool'
 import { convertTokenToDecimal, safeDiv } from '../../utils'
 import { getSubgraphConfig, SubgraphConfig } from '../../utils/chains'
-import { ONE_BI, ZERO_BD, ZERO_BI } from '../../utils/constants'
+import { ONE_BI, ZERO_BD } from '../../utils/constants'
 import { updatePoolDayData } from '../../utils/intervalUpdates'
-import {
-  findNativePerToken,
-  getTrackedAmountUSD,
-  sqrtPriceX96ToTokenPrices,
-} from '../../utils/pricing'
+import { findNativePerToken, getTrackedAmountUSD, sqrtPriceX96ToTokenPrices } from '../../utils/pricing'
 import { getIPPriceUSD } from '../../utils/usdConversion'
+
+const NEGATIVE_ONE_BD = BigDecimal.fromString('-1')
+const TWO_BD = BigDecimal.fromString('2')
+const ONE_MILLION_BD = BigDecimal.fromString('1000000')
+const ONE_DAY_BD = BigDecimal.fromString('86400')
+const DAYS_PER_YEAR_BD = BigDecimal.fromString('365')
+const HUNDRED_BD = BigDecimal.fromString('100')
 
 // Helper function to compute the absolute value of a BigDecimal
 function bdAbs(x: BigDecimal): BigDecimal {
-  return x.lt(ZERO_BD) ? x.times(BigDecimal.fromString('-1')) : x
+  return x.lt(ZERO_BD) ? x.times(NEGATIVE_ONE_BD) : x
 }
 
 export function handleSwap(event: SwapEvent): void {
@@ -41,14 +44,8 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     const amount1 = convertTokenToDecimal(event.params.amount1, token1.decimals)
 
     // need absolute amounts for volume
-    let amount0Abs = amount0
-    if (amount0.lt(ZERO_BD)) {
-      amount0Abs = amount0.times(BigDecimal.fromString('-1'))
-    }
-    let amount1Abs = amount1
-    if (amount1.lt(ZERO_BD)) {
-      amount1Abs = amount1.times(BigDecimal.fromString('-1'))
-    }
+    const amount0Abs = bdAbs(amount0)
+    const amount1Abs = bdAbs(amount1)
 
     const amount0IP = amount0Abs.times(token0.derivedIP)
     const amount1IP = amount1Abs.times(token1.derivedIP)
@@ -63,12 +60,12 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       token1 as Token,
       whitelistTokens,
       ipPriceUSD,
-    ).div(BigDecimal.fromString('2'))
+    ).div(TWO_BD)
     const amountTotalIPTracked = safeDiv(amountTotalUSDTracked, ipPriceUSD)
-    const amountTotalUSDUntracked = amount0USD.plus(amount1USD).div(BigDecimal.fromString('2'))
+    const amountTotalUSDUntracked = amount0USD.plus(amount1USD).div(TWO_BD)
 
-    const feesIP = amountTotalIPTracked.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
-    const feesUSD = amountTotalUSDTracked.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
+    const feesIP = amountTotalIPTracked.times(pool.feeTier.toBigDecimal()).div(ONE_MILLION_BD)
+    const feesUSD = amountTotalUSDTracked.times(pool.feeTier.toBigDecimal()).div(ONE_MILLION_BD)
 
     // pool volume
     pool.volumeToken0 = pool.volumeToken0.plus(amount0Abs)
@@ -132,7 +129,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     pool.totalValueLockedUSD = pool.totalValueLockedIP.times(ipPriceUSD)
 
     const timeElapsed = event.block.timestamp.minus(pool.createdAtTimestamp)
-    calculateFeeAPR(pool, feesIP, feesUSD, timeElapsed);
+    calculateFeeAPR(pool, feesIP, feesUSD, timeElapsed)
 
     token0.totalValueLockedUSD = token0.totalValueLocked.times(token0.derivedIP).times(ipPriceUSD)
     token1.totalValueLockedUSD = token1.totalValueLocked.times(token1.derivedIP).times(ipPriceUSD)
@@ -156,7 +153,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     swap.logIndex = event.logIndex
 
     // interval data
-    const poolDayData = updatePoolDayData(event)
+    const poolDayData = updatePoolDayData(event, pool, false)
 
     poolDayData.volumeUSD = poolDayData.volumeUSD.plus(amountTotalUSDTracked)
     poolDayData.volumeToken0 = poolDayData.volumeToken0.plus(amount0Abs)
@@ -171,23 +168,21 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
   }
 }
 
-
 function calculateFeeAPR(pool: Pool, feesIP: BigDecimal, feesUSD: BigDecimal, timeElapsed: BigInt): void {
-  const timeWindow = BigDecimal.fromString('86400'); // 1 day in seconds
-  const timeElapsedBD = timeElapsed.toBigDecimal();
+  const timeElapsedBD = timeElapsed.toBigDecimal()
 
   // Smooth fees by averaging over a day (or another chosen window)
-  const dailyFeesIP = safeDiv(feesIP.times(timeWindow), timeElapsedBD);
-  const dailyFeesUSD = safeDiv(feesUSD.times(timeWindow), timeElapsedBD);
+  const dailyFeesIP = safeDiv(feesIP.times(ONE_DAY_BD), timeElapsedBD)
+  const dailyFeesUSD = safeDiv(feesUSD.times(ONE_DAY_BD), timeElapsedBD)
 
   // Calculate annualized fees based on daily fees
-  const annualizedFeesIP = dailyFeesIP.times(BigDecimal.fromString('365'));
-  const annualizedFeesUSD = dailyFeesUSD.times(BigDecimal.fromString('365'));
+  const annualizedFeesIP = dailyFeesIP.times(DAYS_PER_YEAR_BD)
+  const annualizedFeesUSD = dailyFeesUSD.times(DAYS_PER_YEAR_BD)
 
   // Use average liquidity to normalize APR
-  const avgLiquidityIP = safeDiv(pool.totalValueLockedIP, BigDecimal.fromString('2'));
-  const avgLiquidityUSD = safeDiv(pool.totalValueLockedUSD, BigDecimal.fromString('2'));
+  const avgLiquidityIP = safeDiv(pool.totalValueLockedIP, TWO_BD)
+  const avgLiquidityUSD = safeDiv(pool.totalValueLockedUSD, TWO_BD)
 
-  pool.feeAPRIP = safeDiv(annualizedFeesIP, avgLiquidityIP).times(BigDecimal.fromString('100'));
-  pool.feeAPRUSD = safeDiv(annualizedFeesUSD, avgLiquidityUSD).times(BigDecimal.fromString('100'));
+  pool.feeAPRIP = safeDiv(annualizedFeesIP, avgLiquidityIP).times(HUNDRED_BD)
+  pool.feeAPRUSD = safeDiv(annualizedFeesUSD, avgLiquidityUSD).times(HUNDRED_BD)
 }
