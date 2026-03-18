@@ -17,6 +17,19 @@ export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, t
   return [price0, price1]
 }
 
+export function currentPoolCanUpdateTokenPricing(
+  token: Token,
+  poolAddress: string,
+  wrappedNativeAddress: string,
+  stablecoinAddresses: string[],
+): boolean {
+  return (
+    token.id == wrappedNativeAddress ||
+    stablecoinAddresses.includes(token.id) ||
+    token.whitelistPools.includes(poolAddress)
+  )
+}
+
 /**
  * Search through graph to find derived IP per token.
  * @todo update to be derived IP (add stablecoin estimates)
@@ -27,6 +40,10 @@ export function findNativePerToken(
   stablecoinAddresses: string[],
   minimumNativeLocked: BigDecimal,
   ipPriceUSD: BigDecimal,
+  currentPoolAddress: string = '',
+  currentPool: Pool | null = null,
+  currentPoolToken0: Token | null = null,
+  currentPoolToken1: Token | null = null,
 ): BigDecimal {
   if (token.id == wrappedNativeAddress) {
     return ONE_BD
@@ -44,13 +61,16 @@ export function findNativePerToken(
   } else {
     for (let i = 0; i < whiteList.length; ++i) {
       const poolAddress = whiteList[i]
-      const pool = Pool.load(poolAddress)
+      const pool = currentPool !== null && poolAddress == currentPoolAddress ? currentPool : Pool.load(poolAddress)
 
       if (pool) {
         if (pool.liquidity.gt(ZERO_BI)) {
           if (pool.token0 == token.id) {
             // whitelist token is token1
-            const token1 = Token.load(pool.token1)
+            const token1 =
+              currentPoolToken1 !== null && poolAddress == currentPoolAddress
+                ? currentPoolToken1
+                : Token.load(pool.token1)
             // get the derived IP in pool
             if (token1) {
               const IPLocked = pool.totalValueLockedToken1.times(token1.derivedIP)
@@ -62,7 +82,10 @@ export function findNativePerToken(
             }
           }
           if (pool.token1 == token.id) {
-            const token0 = Token.load(pool.token0)
+            const token0 =
+              currentPoolToken0 !== null && poolAddress == currentPoolAddress
+                ? currentPoolToken0
+                : Token.load(pool.token0)
             // get the derived IP in pool
             if (token0) {
               const IPLocked = pool.totalValueLockedToken0.times(token0.derivedIP)

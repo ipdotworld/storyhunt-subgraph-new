@@ -6,7 +6,12 @@ import { convertTokenToDecimal, safeDiv } from '../../utils'
 import { getSubgraphConfig, SubgraphConfig } from '../../utils/chains'
 import { ONE_BI, ZERO_BD } from '../../utils/constants'
 import { updatePoolDayData } from '../../utils/intervalUpdates'
-import { findNativePerToken, getTrackedAmountUSD, sqrtPriceX96ToTokenPrices } from '../../utils/pricing'
+import {
+  currentPoolCanUpdateTokenPricing,
+  findNativePerToken,
+  getTrackedAmountUSD,
+  sqrtPriceX96ToTokenPrices,
+} from '../../utils/pricing'
 import { getIPPriceUSD } from '../../utils/usdConversion'
 
 const NEGATIVE_ONE_BD = BigDecimal.fromString('-1')
@@ -105,20 +110,32 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     pool.token1Price = prices[1]
 
     // update USD pricing
-    token0.derivedIP = findNativePerToken(
-      token0 as Token,
-      wrappedNativeAddress,
-      stablecoinAddresses,
-      minimumNativeLocked,
-      ipPriceUSD,
-    )
-    token1.derivedIP = findNativePerToken(
-      token1 as Token,
-      wrappedNativeAddress,
-      stablecoinAddresses,
-      minimumNativeLocked,
-      ipPriceUSD,
-    )
+    if (currentPoolCanUpdateTokenPricing(token0 as Token, pool.id, wrappedNativeAddress, stablecoinAddresses)) {
+      token0.derivedIP = findNativePerToken(
+        token0 as Token,
+        wrappedNativeAddress,
+        stablecoinAddresses,
+        minimumNativeLocked,
+        ipPriceUSD,
+        pool.id,
+        pool,
+        token0 as Token,
+        token1 as Token,
+      )
+    }
+    if (currentPoolCanUpdateTokenPricing(token1 as Token, pool.id, wrappedNativeAddress, stablecoinAddresses)) {
+      token1.derivedIP = findNativePerToken(
+        token1 as Token,
+        wrappedNativeAddress,
+        stablecoinAddresses,
+        minimumNativeLocked,
+        ipPriceUSD,
+        pool.id,
+        pool,
+        token0 as Token,
+        token1 as Token,
+      )
+    }
 
     /**
      * Things afffected by new USD rates
