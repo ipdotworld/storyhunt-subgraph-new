@@ -1,10 +1,11 @@
 import { Address, BigInt, BigDecimal } from '@graphprotocol/graph-ts'
 import { Pool as PoolContract } from '../types/templates/Pool/Pool'
-import { Token } from '../types/schema'
+import { Pool, PriceState, Token } from '../types/schema'
 import { ZERO_BD, STABLECOIN_WRAPPEDNATIVE_POOLADDRESS } from './constants'
 import { exponentToBigDecimal } from './index'
 
 const BI_18_BD = BigDecimal.fromString('1000000000000000000')
+const PRICE_STATE_ID = 'current'
 
 // 2^192 for sqrtPriceX96 conversion
 const Q192 = BigInt.fromI32(2).pow(192 as u8).toBigDecimal()
@@ -12,14 +13,18 @@ const Q192 = BigInt.fromI32(2).pow(192 as u8).toBigDecimal()
 // 10^12 = decimal adjustment for WIP(18dec) - USDC(6dec)
 const DECIMAL_ADJUSTMENT = BigDecimal.fromString('1000000000000')
 
-// Read IP/USD price directly from the WIP-USDC pool contract via eth_call.
-// Graph node caches eth_calls per block, so 100 events in 1 block = 1 RPC call.
-// No Pool entity or PoolCreated event needed - works from any startBlock.
-// If STABLECOIN_WRAPPEDNATIVE_POOLADDRESS is empty, returns hardcoded price (testnet).
+// Read IP/USD price from cached PriceState when available.
+// Fallback to the canonical WIP-USDC pool via eth_call until the canonical
+// pool has been observed in this deployment.
 export function getIPPriceUSD(): BigDecimal {
   // Testnet: no USDC-WIP pool, use hardcoded price
   if (STABLECOIN_WRAPPEDNATIVE_POOLADDRESS == '') {
     return BigDecimal.fromString('1.5')
+  }
+
+  const cachedPriceState = PriceState.load(PRICE_STATE_ID)
+  if (cachedPriceState !== null && !cachedPriceState.ipPriceUSD.equals(ZERO_BD)) {
+    return cachedPriceState.ipPriceUSD
   }
 
   let pool = PoolContract.bind(Address.fromString(STABLECOIN_WRAPPEDNATIVE_POOLADDRESS))
@@ -33,6 +38,27 @@ export function getIPPriceUSD(): BigDecimal {
 
   let num = sqrtPriceX96.times(sqrtPriceX96).toBigDecimal()
   return num.div(Q192).times(DECIMAL_ADJUSTMENT)
+}
+
+export function getIPPriceUSDFromPool(pool: Pool, stablecoinIsToken0: boolean): BigDecimal {
+  return stablecoinIsToken0 ? pool.token0Price : pool.token1Price
+}
+
+export function saveIPPriceUSD(ipPriceUSD: BigDecimal, poolAddress: string, blockNumber: BigInt, timestamp: BigInt): void {
+  if (ipPriceUSD.equals(ZERO_BD)) {
+    return
+  }
+
+  let priceState = PriceState.load(PRICE_STATE_ID)
+  if (priceState === null) {
+    priceState = new PriceState(PRICE_STATE_ID)
+  }
+
+  priceState.ipPriceUSD = ipPriceUSD
+  priceState.sourcePool = poolAddress
+  priceState.updatedAtBlock = blockNumber
+  priceState.updatedAtTimestamp = timestamp
+  priceState.save()
 }
 
 export function wipToUSD(wipAmount: BigInt): BigDecimal {

@@ -12,7 +12,7 @@ import {
   getTrackedAmountUSD,
   sqrtPriceX96ToTokenPrices,
 } from '../../utils/pricing'
-import { getIPPriceUSD } from '../../utils/usdConversion'
+import { getIPPriceUSD, getIPPriceUSDFromPool, saveIPPriceUSD } from '../../utils/usdConversion'
 
 const NEGATIVE_ONE_BD = BigDecimal.fromString('-1')
 const TWO_BD = BigDecimal.fromString('2')
@@ -33,6 +33,8 @@ export function handleSwap(event: SwapEvent): void {
 export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfig = getSubgraphConfig()): void {
   const wrappedNativeAddress = subgraphConfig.wrappedNativeAddress
   const stablecoinAddresses = subgraphConfig.stablecoinAddresses
+  const stablecoinWrappedNativePoolAddress = subgraphConfig.stablecoinWrappedNativePoolAddress
+  const stablecoinIsToken0 = subgraphConfig.stablecoinIsToken0
   const minimumNativeLocked = subgraphConfig.minimumNativeLocked
   const whitelistTokens = subgraphConfig.whitelistTokens
 
@@ -42,7 +44,17 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
   const token1 = Token.load(pool.token1)
 
   if (token0 && token1) {
-    const ipPriceUSD = getIPPriceUSD()
+    const prices = sqrtPriceX96ToTokenPrices(event.params.sqrtPriceX96, token0 as Token, token1 as Token)
+    let ipPriceUSD = ZERO_BD
+
+    if (pool.id == stablecoinWrappedNativePoolAddress) {
+      pool.token0Price = prices[0]
+      pool.token1Price = prices[1]
+      ipPriceUSD = getIPPriceUSDFromPool(pool, stablecoinIsToken0)
+      saveIPPriceUSD(ipPriceUSD, pool.id, event.block.number, event.block.timestamp)
+    } else {
+      ipPriceUSD = getIPPriceUSD()
+    }
 
     // amounts - 0/1 are token deltas: can be positive or negative
     const amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals)
@@ -105,7 +117,6 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     token1.txCount = token1.txCount.plus(ONE_BI)
 
     // updated pool ratess
-    const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0 as Token, token1 as Token)
     pool.token0Price = prices[0]
     pool.token1Price = prices[1]
 
