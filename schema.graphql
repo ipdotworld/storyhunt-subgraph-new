@@ -31,6 +31,10 @@ type Token @entity(immutable: false) {
   # price of that chain's native token, effectively, this should be renamed
   # derivedNative
   derivedIP: BigDecimal!
+  # pool currently used as the best whitelist pricing source
+  pricingPool: String
+  # cached native liquidity for the current pricing pool
+  pricingPoolLiquidityIP: BigDecimal!
   # pools token is in that are white listed for USD pricing
   whitelistPools: [Pool!]!
   # neighbours token for swap routing
@@ -173,6 +177,14 @@ type PoolDayData @entity(immutable: false) {
   low: BigDecimal!
   # close price of token0
   close: BigDecimal!
+}
+
+type PriceState @entity(immutable: false) {
+  id: ID!
+  ipPriceUSD: BigDecimal!
+  sourcePool: String!
+  updatedAtBlock: BigInt!
+  updatedAtTimestamp: BigInt!
 }
 
 type IpTokenLink @entity(immutable: true) {
