@@ -8,11 +8,50 @@ import { getOrCreateTokenSummary, getOrCreateIpSummary, getOrCreateGlobalSummary
 import { wipToUSD, tokenToUSD } from '../utils/usdConversion'
 import { getSubgraphConfig } from '../utils/chains'
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol, fetchTokenTotalSupply } from '../utils/token'
-import { ZERO_BD, ZERO_BI, ONE_BI, IPOWNER_VAULT_ADDRESS } from '../utils/constants'
+import {
+  FULL_INDEX_FROM_BLOCK,
+  HISTORICAL_TARGET_TOKEN_ADDRESSES,
+  IPOWNER_VAULT_ADDRESS,
+  ONE_BI,
+  STABLECOIN_WRAPPEDNATIVE_POOLADDRESS,
+  WHITELIST_TOKEN_ADDRESSES,
+  ZERO_BD,
+  ZERO_BI,
+} from '../utils/constants'
 
 const ONE = BigInt.fromI32(1)
 
-function createPoolAndTokens(poolAddress: Address, eventBlockTimestamp: BigInt, eventBlockNumber: BigInt, txFrom: Address): void {
+function shouldIndexHistoricalToken(tokenAddress: string, blockNumber: BigInt): boolean {
+  return blockNumber.ge(FULL_INDEX_FROM_BLOCK) || HISTORICAL_TARGET_TOKEN_ADDRESSES.includes(tokenAddress)
+}
+
+function shouldIndexHistoricalPool(poolAddress: string, token0Address: string, token1Address: string, blockNumber: BigInt): boolean {
+  if (blockNumber.ge(FULL_INDEX_FROM_BLOCK)) {
+    return true
+  }
+
+  if (poolAddress == STABLECOIN_WRAPPEDNATIVE_POOLADDRESS) {
+    return true
+  }
+
+  return (
+    (HISTORICAL_TARGET_TOKEN_ADDRESSES.includes(token0Address) && WHITELIST_TOKEN_ADDRESSES.includes(token1Address)) ||
+    (HISTORICAL_TARGET_TOKEN_ADDRESSES.includes(token1Address) && WHITELIST_TOKEN_ADDRESSES.includes(token0Address))
+  )
+}
+
+function ensureCanonicalPricePoolIndexed(eventBlockTimestamp: BigInt, eventBlockNumber: BigInt, txFrom: Address): void {
+  if (eventBlockNumber.ge(FULL_INDEX_FROM_BLOCK) || Pool.load(STABLECOIN_WRAPPEDNATIVE_POOLADDRESS) !== null) {
+    return
+  }
+
+  const canonicalPoolAddress = Address.fromString(STABLECOIN_WRAPPEDNATIVE_POOLADDRESS)
+  if (createPoolAndTokens(canonicalPoolAddress, eventBlockTimestamp, eventBlockNumber, txFrom)) {
+    PoolTemplate.create(canonicalPoolAddress)
+  }
+}
+
+function createPoolAndTokens(poolAddress: Address, eventBlockTimestamp: BigInt, eventBlockNumber: BigInt, txFrom: Address): boolean {
   const config = getSubgraphConfig()
   const whitelistTokens = config.whitelistTokens
   const tokenOverrides = config.tokenOverrides
@@ -26,26 +65,33 @@ function createPoolAndTokens(poolAddress: Address, eventBlockTimestamp: BigInt, 
 
   if (token0Result.reverted || token1Result.reverted || feeResult.reverted) {
     log.warning('Pool contract calls reverted for pool {}', [poolAddress.toHexString()])
-    return
+    return false
   }
 
   const token0Address = token0Result.value
   const token1Address = token1Result.value
   const fee = feeResult.value
+  const poolId = poolAddress.toHexString()
+  const token0Id = token0Address.toHexString()
+  const token1Id = token1Address.toHexString()
+
+  if (!shouldIndexHistoricalPool(poolId, token0Id, token1Id, eventBlockNumber)) {
+    return false
+  }
 
   // Create Token entities if they don't exist
-  let token0 = Token.load(token0Address.toHexString())
+  let token0 = Token.load(token0Id)
   if (token0 === null) {
-    token0 = new Token(token0Address.toHexString())
+    token0 = new Token(token0Id)
     token0.symbol = fetchTokenSymbol(token0Address, tokenOverrides)
     token0.name = fetchTokenName(token0Address, tokenOverrides)
     token0.totalSupply = fetchTokenTotalSupply(token0Address)
     const decimals = fetchTokenDecimals(token0Address, tokenOverrides)
     if (decimals === null) {
       log.debug('decimal on token 0 was null', [])
-      return
+      return false
     }
-    token0.decimals = decimals
+    token0.decimals = decimals as BigInt
     token0.derivedIP = ZERO_BD
     token0.volume = ZERO_BD
     token0.volumeUSD = ZERO_BD
@@ -62,18 +108,18 @@ function createPoolAndTokens(poolAddress: Address, eventBlockTimestamp: BigInt, 
     token0.neighbour = []
   }
 
-  let token1 = Token.load(token1Address.toHexString())
+  let token1 = Token.load(token1Id)
   if (token1 === null) {
-    token1 = new Token(token1Address.toHexString())
+    token1 = new Token(token1Id)
     token1.symbol = fetchTokenSymbol(token1Address, tokenOverrides)
     token1.name = fetchTokenName(token1Address, tokenOverrides)
     token1.totalSupply = fetchTokenTotalSupply(token1Address)
     const decimals = fetchTokenDecimals(token1Address, tokenOverrides)
     if (decimals === null) {
       log.debug('decimal on token 1 was null', [])
-      return
+      return false
     }
-    token1.decimals = decimals
+    token1.decimals = decimals as BigInt
     token1.derivedIP = ZERO_BD
     token1.volume = ZERO_BD
     token1.volumeUSD = ZERO_BD
@@ -103,7 +149,7 @@ function createPoolAndTokens(poolAddress: Address, eventBlockTimestamp: BigInt, 
   }
 
   // Create Pool entity
-  const pool = new Pool(poolAddress.toHexString())
+  const pool = new Pool(poolId)
   pool.token0 = token0.id
   pool.token1 = token1.id
   pool.feeTier = BigInt.fromI32(fee)
@@ -141,9 +187,14 @@ function createPoolAndTokens(poolAddress: Address, eventBlockTimestamp: BigInt, 
   token1.neighbour = token1.neighbour.includes(token0.id) ? token1.neighbour : token1.neighbour.concat([token0.id])
   token0.save()
   token1.save()
+  return true
 }
 
 export function handleTokenDeployed(event: TokenDeployed): void {
+  if (!shouldIndexHistoricalToken(event.params.token.toHexString(), event.block.number)) {
+    return
+  }
+
   const deployment = new TokenDeployment(event.params.token.toHexString())
   deployment.blockNumber = event.block.number
   deployment.timestamp = event.block.timestamp
@@ -197,11 +248,17 @@ export function handleTokenDeployed(event: TokenDeployed): void {
     gs.save()
   }
 
-  createPoolAndTokens(event.params.pool, event.block.timestamp, event.block.number, event.transaction.from)
-  PoolTemplate.create(event.params.pool)
+  if (createPoolAndTokens(event.params.pool, event.block.timestamp, event.block.number, event.transaction.from)) {
+    ensureCanonicalPricePoolIndexed(event.block.timestamp, event.block.number, event.transaction.from)
+    PoolTemplate.create(event.params.pool)
+  }
 }
 
 export function handleTokenDeployedV1(event: TokenDeployed1): void {
+  if (!shouldIndexHistoricalToken(event.params.token.toHexString(), event.block.number)) {
+    return
+  }
+
   const deployment = new TokenDeployment(event.params.token.toHexString())
   deployment.blockNumber = event.block.number
   deployment.timestamp = event.block.timestamp
@@ -248,8 +305,10 @@ export function handleTokenDeployedV1(event: TokenDeployed1): void {
     gs.save()
   }
 
-  createPoolAndTokens(event.params.pool, event.block.timestamp, event.block.number, event.transaction.from)
-  PoolTemplate.create(event.params.pool)
+  if (createPoolAndTokens(event.params.pool, event.block.timestamp, event.block.number, event.transaction.from)) {
+    ensureCanonicalPricePoolIndexed(event.block.timestamp, event.block.number, event.transaction.from)
+    PoolTemplate.create(event.params.pool)
+  }
 }
 
 export function handleHarvestV1(event: Harvest1): void {
