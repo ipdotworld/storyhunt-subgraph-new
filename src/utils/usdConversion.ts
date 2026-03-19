@@ -1,7 +1,7 @@
-import { Address, BigInt, BigDecimal } from '@graphprotocol/graph-ts'
+import { Address, BigInt, BigDecimal, dataSource } from '@graphprotocol/graph-ts'
 import { Pool as PoolContract } from '../types/templates/Pool/Pool'
 import { Token } from '../types/schema'
-import { ZERO_BD, STABLECOIN_WRAPPEDNATIVE_POOLADDRESS } from './constants'
+import { ZERO_BD, STABLECOIN_WRAPPEDNATIVE_POOLADDRESS, STORY_TESTNET_NAME } from './constants'
 import { exponentToBigDecimal } from './index'
 
 const BI_18_BD = BigDecimal.fromString('1000000000000000000')
@@ -17,9 +17,9 @@ const DECIMAL_ADJUSTMENT = BigDecimal.fromString('1000000000000')
 // No Pool entity or PoolCreated event needed - works from any startBlock.
 // If STABLECOIN_WRAPPEDNATIVE_POOLADDRESS is empty, returns hardcoded price (testnet).
 export function getIPPriceUSD(): BigDecimal {
-  // Testnet: no USDC-WIP pool, use hardcoded price
-  if (STABLECOIN_WRAPPEDNATIVE_POOLADDRESS == '') {
-    return BigDecimal.fromString('1.5')
+  // Testnet: no USDC-WIP pool, use hardcoded $1
+  if (STABLECOIN_WRAPPEDNATIVE_POOLADDRESS == '' || dataSource.network() == STORY_TESTNET_NAME) {
+    return BigDecimal.fromString('1')
   }
 
   let pool = PoolContract.bind(Address.fromString(STABLECOIN_WRAPPEDNATIVE_POOLADDRESS))
