@@ -5,6 +5,19 @@ import { Pool, Token } from './../types/schema'
 import { ONE_BD, ZERO_BD, ZERO_BI } from './constants'
 
 const Q192 = BigInt.fromI32(2).pow(192 as u8)
+
+class PricingCandidate {
+  price: BigDecimal
+  liquidityIP: BigDecimal
+  poolAddress: string
+
+  constructor(price: BigDecimal = ZERO_BD, liquidityIP: BigDecimal = ZERO_BD, poolAddress: string = '') {
+    this.price = price
+    this.liquidityIP = liquidityIP
+    this.poolAddress = poolAddress
+  }
+}
+
 export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, token1: Token): BigDecimal[] {
   const num = sqrtPriceX96.times(sqrtPriceX96).toBigDecimal()
   const denom = BigDecimal.fromString(Q192.toString())
@@ -17,6 +30,93 @@ export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, t
   return [price0, price1]
 }
 
+export function currentPoolCanUpdateTokenPricing(
+  token: Token,
+  poolAddress: string,
+  wrappedNativeAddress: string,
+  stablecoinAddresses: string[],
+): boolean {
+  return (
+    token.id == wrappedNativeAddress ||
+    stablecoinAddresses.includes(token.id) ||
+    token.whitelistPools.includes(poolAddress)
+  )
+}
+
+function getPricingCandidateForPool(
+  token: Token,
+  pool: Pool,
+  minimumNativeLocked: BigDecimal,
+  currentPoolAddress: string = '',
+  currentPoolToken0: Token | null = null,
+  currentPoolToken1: Token | null = null,
+): PricingCandidate {
+  if (!pool.liquidity.gt(ZERO_BI)) {
+    return new PricingCandidate()
+  }
+
+  if (pool.token0 == token.id) {
+    const token1 =
+      currentPoolToken1 !== null && pool.id == currentPoolAddress
+        ? currentPoolToken1
+        : Token.load(pool.token1)
+    if (token1 !== null) {
+      const liquidityIP = pool.totalValueLockedToken1.times(token1.derivedIP)
+      if (liquidityIP.gt(minimumNativeLocked)) {
+        return new PricingCandidate(pool.token1Price.times(token1.derivedIP as BigDecimal), liquidityIP, pool.id)
+      }
+    }
+  }
+
+  if (pool.token1 == token.id) {
+    const token0 =
+      currentPoolToken0 !== null && pool.id == currentPoolAddress
+        ? currentPoolToken0
+        : Token.load(pool.token0)
+    if (token0 !== null) {
+      const liquidityIP = pool.totalValueLockedToken0.times(token0.derivedIP)
+      if (liquidityIP.gt(minimumNativeLocked)) {
+        return new PricingCandidate(pool.token0Price.times(token0.derivedIP as BigDecimal), liquidityIP, pool.id)
+      }
+    }
+  }
+
+  return new PricingCandidate()
+}
+
+function findBestPricingCandidate(
+  token: Token,
+  minimumNativeLocked: BigDecimal,
+  currentPoolAddress: string = '',
+  currentPool: Pool | null = null,
+  currentPoolToken0: Token | null = null,
+  currentPoolToken1: Token | null = null,
+): PricingCandidate {
+  const whiteList = token.whitelistPools
+  let bestCandidate = new PricingCandidate()
+
+  for (let i = 0; i < whiteList.length; ++i) {
+    const poolAddress = whiteList[i]
+    const pool = currentPool !== null && poolAddress == currentPoolAddress ? currentPool : Pool.load(poolAddress)
+
+    if (pool !== null) {
+      const candidate = getPricingCandidateForPool(
+        token,
+        pool,
+        minimumNativeLocked,
+        currentPoolAddress,
+        currentPoolToken0,
+        currentPoolToken1,
+      )
+      if (candidate.liquidityIP.gt(bestCandidate.liquidityIP)) {
+        bestCandidate = candidate
+      }
+    }
+  }
+
+  return bestCandidate
+}
+
 /**
  * Search through graph to find derived IP per token.
  * @todo update to be derived IP (add stablecoin estimates)
@@ -27,57 +127,57 @@ export function findNativePerToken(
   stablecoinAddresses: string[],
   minimumNativeLocked: BigDecimal,
   ipPriceUSD: BigDecimal,
+  currentPoolAddress: string = '',
+  currentPool: Pool | null = null,
+  currentPoolToken0: Token | null = null,
+  currentPoolToken1: Token | null = null,
 ): BigDecimal {
   if (token.id == wrappedNativeAddress) {
+    token.pricingPool = null
+    token.pricingPoolLiquidityIP = ZERO_BD
     return ONE_BD
   }
-  const whiteList = token.whitelistPools
-  // for now just take USD from pool with greatest TVL
-  // need to update this to actually detect best rate based on liquidity distribution
-  let largestLiquidityIP = ZERO_BD
-  let priceSoFar = ZERO_BD
 
   // hardcoded fix for incorrect rates
   // if whitelist includes token - get the safe price
   if (stablecoinAddresses.includes(token.id)) {
-    priceSoFar = safeDiv(ONE_BD, ipPriceUSD)
-  } else {
-    for (let i = 0; i < whiteList.length; ++i) {
-      const poolAddress = whiteList[i]
-      const pool = Pool.load(poolAddress)
-
-      if (pool) {
-        if (pool.liquidity.gt(ZERO_BI)) {
-          if (pool.token0 == token.id) {
-            // whitelist token is token1
-            const token1 = Token.load(pool.token1)
-            // get the derived IP in pool
-            if (token1) {
-              const IPLocked = pool.totalValueLockedToken1.times(token1.derivedIP)
-              if (IPLocked.gt(largestLiquidityIP) && IPLocked.gt(minimumNativeLocked)) {
-                largestLiquidityIP = IPLocked
-                // token1 per our token * IP per token1
-                priceSoFar = pool.token1Price.times(token1.derivedIP as BigDecimal)
-              }
-            }
-          }
-          if (pool.token1 == token.id) {
-            const token0 = Token.load(pool.token0)
-            // get the derived IP in pool
-            if (token0) {
-              const IPLocked = pool.totalValueLockedToken0.times(token0.derivedIP)
-              if (IPLocked.gt(largestLiquidityIP) && IPLocked.gt(minimumNativeLocked)) {
-                largestLiquidityIP = IPLocked
-                // token0 per our token * IP per token0
-                priceSoFar = pool.token0Price.times(token0.derivedIP as BigDecimal)
-              }
-            }
-          }
-        }
-      }
-    }
+    token.pricingPool = null
+    token.pricingPoolLiquidityIP = ZERO_BD
+    return safeDiv(ONE_BD, ipPriceUSD)
   }
-  return priceSoFar // nothing was found return 0
+
+  const currentPoolIsWhitelisted = currentPoolAddress != '' && token.whitelistPools.includes(currentPoolAddress)
+  const currentPoolIsPricingPool = token.pricingPool !== null && token.pricingPool == currentPoolAddress
+
+  if (currentPoolIsWhitelisted && !currentPoolIsPricingPool && token.pricingPoolLiquidityIP.gt(ZERO_BD) && currentPool !== null) {
+    const currentCandidate = getPricingCandidateForPool(
+      token,
+      currentPool,
+      minimumNativeLocked,
+      currentPoolAddress,
+      currentPoolToken0,
+      currentPoolToken1,
+    )
+    if (currentCandidate.liquidityIP.gt(token.pricingPoolLiquidityIP)) {
+      token.pricingPool = currentCandidate.poolAddress
+      token.pricingPoolLiquidityIP = currentCandidate.liquidityIP
+      return currentCandidate.price
+    }
+    return token.derivedIP
+  }
+
+  const bestCandidate = findBestPricingCandidate(
+    token,
+    minimumNativeLocked,
+    currentPoolAddress,
+    currentPool,
+    currentPoolToken0,
+    currentPoolToken1,
+  )
+
+  token.pricingPool = bestCandidate.poolAddress == '' ? null : bestCandidate.poolAddress
+  token.pricingPoolLiquidityIP = bestCandidate.liquidityIP
+  return bestCandidate.price
 }
 
 /**

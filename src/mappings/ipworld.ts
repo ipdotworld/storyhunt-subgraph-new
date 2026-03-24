@@ -58,6 +58,8 @@ function createPoolAndTokens(poolAddress: Address, eventBlockTimestamp: BigInt, 
     token0.totalValueLockedUSDUntracked = ZERO_BD
     token0.txCount = ZERO_BI
     token0.poolCount = ZERO_BI
+    token0.pricingPool = null
+    token0.pricingPoolLiquidityIP = ZERO_BD
     token0.whitelistPools = []
     token0.neighbour = []
   }
@@ -84,6 +86,8 @@ function createPoolAndTokens(poolAddress: Address, eventBlockTimestamp: BigInt, 
     token1.totalValueLockedUSDUntracked = ZERO_BD
     token1.txCount = ZERO_BI
     token1.poolCount = ZERO_BI
+    token1.pricingPool = null
+    token1.pricingPoolLiquidityIP = ZERO_BD
     token1.whitelistPools = []
     token1.neighbour = []
   }
