@@ -60,6 +60,9 @@ dataSources:
           handler: handleTreasuryFlushed
         - event: ReferralFeePaid(indexed address,indexed address,indexed address,uint256)
           handler: handleReferralFeePaid
+        # Migration events (pool fee tier migration 0.3% -> 1%)
+        - event: Migrated(indexed address,indexed address,indexed address,int24,int24,int24,int24,uint256,uint256)
+          handler: handleMigrated
 
   - kind: ethereum/contract
     name: IPOwnerVault
