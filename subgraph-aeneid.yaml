@@ -60,6 +60,9 @@ dataSources:
           handler: handleTreasuryFlushed
         - event: ReferralFeePaid(indexed address,indexed address,indexed address,uint256)
           handler: handleReferralFeePaid
+        # Migration events (pool fee tier migration 0.3% -> 1%)
+        - event: Migrated(indexed address,indexed address,indexed address,int24,int24,int24,int24,uint256,uint256)
+          handler: handleMigrated
 
   - kind: ethereum/contract
     name: IPOwnerVault
@@ -87,8 +90,6 @@ dataSources:
           handler: handleVestedTokensAndEthClaimed
         - event: VestingScheduleCreated(indexed address,uint256,uint64,uint64)
           handler: handleVestingScheduleCreated
-        - event: ReleasedVested(indexed address,uint256)
-          handler: handleReleasedVested
 
 templates:
   - kind: ethereum/contract
@@ -116,3 +117,7 @@ templates:
           handler: handleSwap
         - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
           handler: handleMint
+        - event: Burn(indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleBurn
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect

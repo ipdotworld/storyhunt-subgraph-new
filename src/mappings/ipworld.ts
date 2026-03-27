@@ -1,13 +1,15 @@
 import { Address, BigInt, log } from '@graphprotocol/graph-ts'
-import { TokenDeployed, TokenDeployed1, Harvest, Harvest1, HarvestDistributed, AirdropClaimedUgc, AirdropClaimedHolder, TreasuryFlushed, Linked, ReferralFeePaid } from '../types/IPWorld/IPWorld'
+import { TokenDeployed, TokenDeployed1, Harvest, Harvest1, HarvestDistributed, AirdropClaimedUgc, AirdropClaimedHolder, TreasuryFlushed, Linked, ReferralFeePaid, Migrated } from '../types/IPWorld/IPWorld'
 import { ERC20 } from '../types/IPWorld/ERC20'
 import { Pool as PoolContract } from '../types/templates/Pool/Pool'
 import { IpTokenLink, Pool, Token, TokenDeployment, WalletAirdropClaim } from '../types/schema'
 import { Pool as PoolTemplate } from '../types/templates'
 import { getOrCreateTokenSummary, getOrCreateIpSummary, getOrCreateGlobalSummary, getOrCreateWalletAirdropSummary, getOrCreateWalletTokenAirdropSummary, getOrCreateTokenAirdropClaimSummary, totalRewardsUSD, ipOwnerRewardsUSD } from './reward-summary'
-import { wipToUSD, tokenToUSD } from '../utils/usdConversion'
+import { wipToUSD, tokenToUSD, getIPPriceUSD } from '../utils/usdConversion'
 import { getSubgraphConfig } from '../utils/chains'
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol, fetchTokenTotalSupply } from '../utils/token'
+import { findNativePerToken, sqrtPriceX96ToTokenPrices } from '../utils/pricing'
+import { convertTokenToDecimal } from '../utils'
 import { ZERO_BD, ZERO_BI, ONE_BI, IPOWNER_VAULT_ADDRESS } from '../utils/constants'
 
 const ONE = BigInt.fromI32(1)
@@ -900,4 +902,134 @@ export function handleLinked(event: Linked): void {
   is_.lastUpdatedBlock = event.block.number
   is_.lastUpdatedTimestamp = event.block.timestamp
   is_.save()
+}
+
+export function handleMigrated(event: Migrated): void {
+  const oldPoolAddress = event.params.oldPool.toHexString()
+  const newPoolAddress = event.params.newPool.toHexString()
+
+  // Skip if new pool entity already exists (LP2/LP3 Migrated events — their Mints are caught by PoolTemplate)
+  const existingPool = Pool.load(newPoolAddress)
+  if (existingPool !== null) {
+    return
+  }
+
+  // Step 1: Create Pool + Token entities via eth_call (pool.token0, token1, fee)
+  createPoolAndTokens(event.params.newPool, event.block.timestamp, event.block.number, event.transaction.from)
+
+  const newPool = Pool.load(newPoolAddress)
+  if (newPool === null) {
+    return
+  }
+
+  const token0 = Token.load(newPool.token0)
+  const token1 = Token.load(newPool.token1)
+  if (token0 === null || token1 === null) {
+    return
+  }
+
+  // Step 2: Compensate missed Initialize — read on-chain state via slot0() and liquidity()
+  const poolContract = PoolContract.bind(event.params.newPool)
+  const slot0Result = poolContract.try_slot0()
+  if (!slot0Result.reverted) {
+    newPool.sqrtPrice = slot0Result.value.getSqrtPriceX96()
+    newPool.tick = BigInt.fromI32(slot0Result.value.getTick())
+
+    const prices = sqrtPriceX96ToTokenPrices(newPool.sqrtPrice, token0 as Token, token1 as Token)
+    newPool.token0Price = prices[0]
+    newPool.token1Price = prices[1]
+  }
+  const liquidityResult = poolContract.try_liquidity()
+  if (!liquidityResult.reverted) {
+    newPool.liquidity = liquidityResult.value
+  }
+
+  // Step 3: Compensate missed LP1 Mint — add TVL from Migrated event amounts
+  // Determine which side is WIP vs memetoken by checking pool.token0
+  const config = getSubgraphConfig()
+  const wrappedNativeAddress = config.wrappedNativeAddress
+
+  if (newPool.token0 == wrappedNativeAddress) {
+    // token0 = WIP, token1 = memetoken
+    const wethDecimal = convertTokenToDecimal(event.params.wethAmount, token0.decimals)
+    const tokenDecimal = convertTokenToDecimal(event.params.tokenAmount, token1.decimals)
+    newPool.totalValueLockedToken0 = newPool.totalValueLockedToken0.plus(wethDecimal)
+    newPool.totalValueLockedToken1 = newPool.totalValueLockedToken1.plus(tokenDecimal)
+    token0.totalValueLocked = token0.totalValueLocked.plus(wethDecimal)
+    token1.totalValueLocked = token1.totalValueLocked.plus(tokenDecimal)
+  } else {
+    // token0 = memetoken, token1 = WIP
+    const tokenDecimal = convertTokenToDecimal(event.params.tokenAmount, token0.decimals)
+    const wethDecimal = convertTokenToDecimal(event.params.wethAmount, token1.decimals)
+    newPool.totalValueLockedToken0 = newPool.totalValueLockedToken0.plus(tokenDecimal)
+    newPool.totalValueLockedToken1 = newPool.totalValueLockedToken1.plus(wethDecimal)
+    token0.totalValueLocked = token0.totalValueLocked.plus(tokenDecimal)
+    token1.totalValueLocked = token1.totalValueLocked.plus(wethDecimal)
+  }
+
+  // Recalculate Pool TVL in IP/USD
+  const ipPriceUSD = getIPPriceUSD()
+  newPool.totalValueLockedIP = newPool.totalValueLockedToken0
+    .times(token0.derivedIP)
+    .plus(newPool.totalValueLockedToken1.times(token1.derivedIP))
+  newPool.totalValueLockedUSD = newPool.totalValueLockedIP.times(ipPriceUSD)
+
+  newPool.save()
+
+  // Step 4: Register PoolTemplate — LP2/LP3 Mints (later in same TX) will be caught
+  PoolTemplate.create(event.params.newPool)
+
+  // Step 5: Update whitelistPools — remove old 0.3% pool, add new 1% pool
+  const whitelistTokens = config.whitelistTokens
+
+  if (whitelistTokens.includes(token1.id)) {
+    const pools = token0.whitelistPools
+    const filtered: string[] = []
+    for (let i = 0; i < pools.length; i++) {
+      if (pools[i] != oldPoolAddress) {
+        filtered.push(pools[i])
+      }
+    }
+    if (!filtered.includes(newPoolAddress)) {
+      filtered.push(newPoolAddress)
+    }
+    token0.whitelistPools = filtered
+  }
+
+  if (whitelistTokens.includes(token0.id)) {
+    const pools = token1.whitelistPools
+    const filtered: string[] = []
+    for (let i = 0; i < pools.length; i++) {
+      if (pools[i] != oldPoolAddress) {
+        filtered.push(pools[i])
+      }
+    }
+    if (!filtered.includes(newPoolAddress)) {
+      filtered.push(newPoolAddress)
+    }
+    token1.whitelistPools = filtered
+  }
+
+  // Step 6: Recalculate derivedIP (now pool has sqrtPrice, liquidity, TVL data)
+  token0.derivedIP = findNativePerToken(
+    token0 as Token,
+    config.wrappedNativeAddress,
+    config.stablecoinAddresses,
+    config.minimumNativeLocked,
+    ipPriceUSD,
+  )
+  token1.derivedIP = findNativePerToken(
+    token1 as Token,
+    config.wrappedNativeAddress,
+    config.stablecoinAddresses,
+    config.minimumNativeLocked,
+    ipPriceUSD,
+  )
+
+  // Step 7: Update Token TVL USD with new derivedIP
+  token0.totalValueLockedUSD = token0.totalValueLocked.times(token0.derivedIP).times(ipPriceUSD)
+  token1.totalValueLockedUSD = token1.totalValueLocked.times(token1.derivedIP).times(ipPriceUSD)
+
+  token0.save()
+  token1.save()
 }
