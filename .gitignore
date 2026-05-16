@@ -7,3 +7,8 @@ yarn-error.log
 tests/.bin/
 tests/.docker/
 tests/.latest.json
+agents.md
+AGENTS.md
+workbook.md
+WORKBOOK.md
+docs/WORKBOOK.md

@@ -10,7 +10,7 @@ import { getSubgraphConfig } from '../utils/chains'
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol, fetchTokenTotalSupply } from '../utils/token'
 import { findNativePerToken, sqrtPriceX96ToTokenPrices } from '../utils/pricing'
 import { convertTokenToDecimal } from '../utils'
-import { ZERO_BD, ZERO_BI, ONE_BI, IPOWNER_VAULT_ADDRESS } from '../utils/constants'
+import { ZERO_BD, ZERO_BI, ONE_BI } from '../utils/constants'
 
 const ONE = BigInt.fromI32(1)
 
@@ -165,7 +165,8 @@ export function handleTokenDeployed(event: TokenDeployed): void {
   deployment.save()
 
   // Calculate vestingPendingAmount from vault balance
-  const vaultAddress = Address.fromString(IPOWNER_VAULT_ADDRESS)
+  const config = getSubgraphConfig()
+  const vaultAddress = Address.fromString(config.ipOwnerVaultAddress)
   const tokenContract = ERC20.bind(event.params.token)
   const vaultBalanceResult = tokenContract.try_balanceOf(vaultAddress)
 
@@ -216,7 +217,8 @@ export function handleTokenDeployedV1(event: TokenDeployed1): void {
   deployment.save()
 
   // Calculate vestingPendingAmount from vault balance
-  const vaultAddress = Address.fromString(IPOWNER_VAULT_ADDRESS)
+  const config = getSubgraphConfig()
+  const vaultAddress = Address.fromString(config.ipOwnerVaultAddress)
   const tokenContract = ERC20.bind(event.params.token)
   const vaultBalanceResult = tokenContract.try_balanceOf(vaultAddress)
 
