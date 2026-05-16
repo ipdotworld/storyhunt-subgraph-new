@@ -7,12 +7,16 @@
     "lint": "eslint . --ext .ts --fix",
     "build": "run-s codegen && graph build subgraph-aeneid.yaml",
     "build:mainnet": "run-s codegen:mainnet && graph build subgraph-mainnet.yaml",
+    "build:sepolia": "run-s codegen:sepolia && graph build subgraph-sepolia.yaml",
     "build:docker": "docker build -t matchstick .",
     "codegen": "graph codegen subgraph-aeneid.yaml --output-dir src/types/",
     "codegen:mainnet": "graph codegen subgraph-mainnet.yaml --output-dir src/types/",
+    "codegen:sepolia": "graph codegen subgraph-sepolia.yaml --output-dir src/types/",
     "test": "graph test -d",
     "test:no-tty": "docker run -i --rm --mount type=bind,source=$INIT_CWD,target=/matchstick matchstick",
     "deploy": "goldsky subgraph deploy storyhunt-subgraph-new/v1.0.11",
+    "deploy:sepolia": "run-s build:sepolia deploy:sepolia:built",
+    "deploy:sepolia:built": "goldsky subgraph deploy storyhunt-subgraph-ethereum-sepolia/v0.1.0 --path build",
     "deploy:graft": "goldsky subgraph deploy storyhunt-subgraph-new/v1.0.11 --graft-from storyhunt-subgraph-new/v1.0.10"
   },
   "devDependencies": {

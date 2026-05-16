@@ -18,6 +18,7 @@ export const POOL_FEE_TIER_03 = 3000
 
 export const TEST_CONFIG: SubgraphConfig = {
   factoryAddress: FACTORY_ADDRESS,
+  ipOwnerVaultAddress: ADDRESS_ZERO,
   stablecoinWrappedNativePoolAddress: USDC_WIP_03_MAINNET_POOL,
   stablecoinIsToken0: true,
   wrappedNativeAddress: WIP_MAINNET_ADDRESS,
@@ -31,6 +32,7 @@ export const TEST_CONFIG: SubgraphConfig = {
 
 export const TEST_CONFIG_WITH_NO_WHITELIST: SubgraphConfig = {
   factoryAddress: FACTORY_ADDRESS,
+  ipOwnerVaultAddress: ADDRESS_ZERO,
   stablecoinWrappedNativePoolAddress: USDC_WIP_03_MAINNET_POOL,
   stablecoinIsToken0: true,
   wrappedNativeAddress: WIP_MAINNET_ADDRESS,
@@ -44,6 +46,7 @@ export const TEST_CONFIG_WITH_NO_WHITELIST: SubgraphConfig = {
 
 export const TEST_CONFIG_WITH_POOL_SKIPPED: SubgraphConfig = {
   factoryAddress: FACTORY_ADDRESS,
+  ipOwnerVaultAddress: ADDRESS_ZERO,
   stablecoinWrappedNativePoolAddress: USDC_WIP_03_MAINNET_POOL,
   stablecoinIsToken0: true,
   wrappedNativeAddress: WIP_MAINNET_ADDRESS,

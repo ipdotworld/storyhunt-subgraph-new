@@ -1,0 +1,119 @@
+specVersion: 1.3.0
+description: StoryHunt Sepolia - ETH testnet indexing for IPWorld token deployments and pools.
+repository: https://github.com/ipdotworld/storyhunt-subgraph-new.git
+schema:
+  file: ./schema.graphql
+features:
+  - nonFatalErrors
+indexerHints:
+  prune: auto
+dataSources:
+  - kind: ethereum/contract
+    name: IPWorld
+    network: sepolia
+    source:
+      address: '0xAD02dB09AF336817c3839b18A833bf77401cDFBb'
+      abi: IPWorld
+      startBlock: 10823898
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/ipworld.ts
+      entities:
+        - Pool
+        - Token
+        - IpTokenLink
+        - TokenRewardSummary
+        - IpRewardSummary
+        - GlobalRewardSummary
+        - WalletAirdropSummary
+        - WalletTokenAirdropSummary
+        - TokenAirdropClaimSummary
+        - WalletAirdropClaim
+      abis:
+        - name: IPWorld
+          file: ./abis/IPWorld.json
+        - name: Pool
+          file: ./abis/Pool.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: ERC20SymbolBytes
+          file: ./abis/ERC20SymbolBytes.json
+        - name: ERC20NameBytes
+          file: ./abis/ERC20NameBytes.json
+      eventHandlers:
+        - event: Linked(indexed address,indexed address)
+          handler: handleLinked
+        - event: TokenDeployed(indexed address,indexed address,indexed address,int24[],uint256[])
+          handler: handleTokenDeployed
+        - event: HarvestDistributed(indexed address,uint256,uint256,uint256,uint256,uint256,uint256,uint256)
+          handler: handleHarvestDistributed
+        - event: AirdropClaimedUgc(indexed address,indexed address,uint256,uint256)
+          handler: handleAirdropClaimedUgc
+        - event: AirdropClaimedHolder(indexed address,indexed address,uint256,uint256)
+          handler: handleAirdropClaimedHolder
+        - event: TreasuryFlushed(indexed address,indexed address,uint256)
+          handler: handleTreasuryFlushed
+        - event: ReferralFeePaid(indexed address,indexed address,indexed address,uint256)
+          handler: handleReferralFeePaid
+        - event: Migrated(indexed address,indexed address,indexed address,int24,int24,int24,int24,uint256,uint256)
+          handler: handleMigrated
+
+  - kind: ethereum/contract
+    name: IPOwnerVault
+    network: sepolia
+    source:
+      address: '0x972fBe4a97FF19b4BcbF4B5E9D5D56e7630c3E5E'
+      abi: IPOwnerVault
+      startBlock: 10823898
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/ipowner-vault.ts
+      entities:
+        - TokenRewardSummary
+        - IpRewardSummary
+        - GlobalRewardSummary
+      abis:
+        - name: IPOwnerVault
+          file: ./abis/IPOwnerVault.json
+        - name: Pool
+          file: ./abis/pool.json
+      eventHandlers:
+        - event: VestedTokensAndEthClaimed(indexed address,indexed address,uint256,uint256)
+          handler: handleVestedTokensAndEthClaimed
+        - event: VestingScheduleCreated(indexed address,uint256,uint64,uint64)
+          handler: handleVestingScheduleCreated
+
+templates:
+  - kind: ethereum/contract
+    name: Pool
+    network: sepolia
+    source:
+      abi: Pool
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/pool/index.ts
+      entities:
+        - Pool
+        - Token
+      abis:
+        - name: Pool
+          file: ./abis/pool.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Initialize(uint160,int24)
+          handler: handleInitialize
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Burn(indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleBurn
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect

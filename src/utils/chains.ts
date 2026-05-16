@@ -1,11 +1,31 @@
 import { Address, BigDecimal, BigInt, dataSource } from '@graphprotocol/graph-ts'
-import { ODYSSEY_TESTNET_NAME, STABLECOIN_ADDRESSES, STABLECOIN_WRAPPEDNATIVE_POOLADDRESS, STORY_MAINNET_NAME, STORY_TESTNET_NAME, V3_FACTORY_CONTRACT, WHITELIST_TOKEN_ADDRESSES, WIP_ADDRESS } from './constants'
+import {
+  ETHEREUM_SEPOLIA_IPOWNER_VAULT_ADDRESS,
+  ETHEREUM_SEPOLIA_NAME,
+  ETHEREUM_SEPOLIA_STABLECOIN_ADDRESSES,
+  ETHEREUM_SEPOLIA_STABLECOIN_WRAPPEDNATIVE_POOLADDRESS,
+  ETHEREUM_SEPOLIA_V3_FACTORY_CONTRACT,
+  ETHEREUM_SEPOLIA_WETH_ADDRESS,
+  ETHEREUM_SEPOLIA_WHITELIST_TOKEN_ADDRESSES,
+  IPOWNER_VAULT_ADDRESS,
+  ODYSSEY_TESTNET_NAME,
+  STABLECOIN_ADDRESSES,
+  STABLECOIN_WRAPPEDNATIVE_POOLADDRESS,
+  STORY_MAINNET_NAME,
+  STORY_TESTNET_NAME,
+  V3_FACTORY_CONTRACT,
+  WHITELIST_TOKEN_ADDRESSES,
+  WIP_ADDRESS,
+} from './constants'
 import { StaticTokenDefinition } from './staticTokenDefinition'
 
 // Note: All token and pool addresses should be lowercased!
 export class SubgraphConfig {
   // deployment address
   factoryAddress: string
+
+  // vault that receives token vesting on this chain
+  ipOwnerVaultAddress: string
 
   // the address of a pool where one token is a stablecoin and the other is a
   // token that tracks the price of the native token use this to calculate the
@@ -51,12 +71,27 @@ export function getSubgraphConfig(): SubgraphConfig {
   if (selectedNetwork == STORY_MAINNET_NAME || selectedNetwork == STORY_TESTNET_NAME || selectedNetwork == ODYSSEY_TESTNET_NAME) {
     return {
       factoryAddress: V3_FACTORY_CONTRACT,
+      ipOwnerVaultAddress: IPOWNER_VAULT_ADDRESS,
       stablecoinWrappedNativePoolAddress: STABLECOIN_WRAPPEDNATIVE_POOLADDRESS, // WIP-USDC 0.05% pool
       stablecoinIsToken0: false,
       wrappedNativeAddress: WIP_ADDRESS, // WIP
       minimumNativeLocked: BigDecimal.fromString('1'),
       stablecoinAddresses: STABLECOIN_ADDRESSES,
       whitelistTokens: WHITELIST_TOKEN_ADDRESSES,
+      tokenOverrides: [],
+      poolsToSkip: [],
+      poolMappings: [],
+    }
+  } else if (selectedNetwork == ETHEREUM_SEPOLIA_NAME) {
+    return {
+      factoryAddress: ETHEREUM_SEPOLIA_V3_FACTORY_CONTRACT,
+      ipOwnerVaultAddress: ETHEREUM_SEPOLIA_IPOWNER_VAULT_ADDRESS,
+      stablecoinWrappedNativePoolAddress: ETHEREUM_SEPOLIA_STABLECOIN_WRAPPEDNATIVE_POOLADDRESS, // USDC-WETH 0.05% pool
+      stablecoinIsToken0: true,
+      wrappedNativeAddress: ETHEREUM_SEPOLIA_WETH_ADDRESS,
+      minimumNativeLocked: BigDecimal.fromString('0'),
+      stablecoinAddresses: ETHEREUM_SEPOLIA_STABLECOIN_ADDRESSES,
+      whitelistTokens: ETHEREUM_SEPOLIA_WHITELIST_TOKEN_ADDRESSES,
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
